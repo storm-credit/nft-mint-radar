@@ -2,116 +2,153 @@
 
 ## Current verdict
 
-**설계 골격 완료 / Source·Blind-spot 1차 완료 / Deep Design 미완료 / 정책형 Harness 1차 완료 / 실행형 Harness 미완료 / 본 구현 금지 / 기술 Spike 전 단계**
+**설계 골격 완료 / Source·Blind-spot 1차 완료 / Deep Design v1 완료 / 정책형 Harness 완료 / Executable Harness 사양 완료 / Credential-free 설계 Dry-run 완료 / Provider Paper Validation 완료 / Operational Spikes 미완료 / Harness Runner·본 구현 미착수 / Production Coding BLOCKED**
 
-This is the authoritative readiness statement until the exit criteria below are met.
+This is the authoritative readiness statement until the required spike results are recorded.
 
 ## What is complete
 
 ### 1. Product/architecture skeleton — COMPLETE
 - Phase 1–4 boundaries exist.
-- Core entities are identified: Project, Source, Evidence, Opportunity, Quest, UserProgress, WalletEntity, InfluencerEntity, Notification.
+- Core entities are defined: Project, Source, Evidence, Opportunity, Quest, UserProgress, WalletEntity, InfluencerEntity, Notification.
 - Discovery and verification are explicitly separated.
 - Trust tiers T0–T4 exist.
-- Dune/wallet cohort and influencer roles are separated from official verification.
-- Telegram is defined as the primary notification destination.
+- Dune/wallet cohort and influencer roles are separate from official verification.
+- Telegram is the primary notification destination.
 
 ### 2. Source strategy / blind-spot sweep — FIRST PASS COMPLETE
-- X, official sites, PREMINT, Galxe, Guild, marketplaces, on-chain, Dune, Discord, Telegram, Reddit and optional analytics sources are classified.
+- X, official sites, PREMINT, Galxe, Guild, OpenSea, on-chain, Dune, Discord, Telegram, Reddit and optional analytics sources are classified.
 - Famous-wallet and influencer traps are documented.
 - Discord/X automation safety boundaries are documented.
-- Source ROI and time-to-alpha metrics are identified.
+- Source ROI and time-to-alpha metrics are defined.
 
-### 3. Policy harness — FIRST PASS COMPLETE
-`CLAUDE.md` defines:
-- intent check
-- blind-spot sweep
-- trap check
-- four-option design
-- ADR requirement
-- smallest-slice implementation
-- validation-before-completion
-- deviation logging
-- phase boundaries
-- security boundaries
-- meta-prompting workflow
+### 3. Deep Design v1 — COMPLETE IN DESIGN
+Authoritative documents:
+- `docs/DEEP_DESIGN.md`
+- `docs/SOURCE_ADAPTER_CONTRACTS.md`
+- `docs/WALLET_INTELLIGENCE_SPEC.md`
+- `docs/METRICS_SLO.md`
+- `docs/DEEP_DESIGN_CHECKLIST.md`
+
+Decided:
+- Phase 1 primary user/JTBD/non-goals
+- initial chains: Ethereum + Base
+- provider-neutral canonical schemas
+- event normalization/dedup/edit handling
+- evidence versioning and conflict policy
+- project identity merge/split policy
+- verification and CTA safety gates
+- opportunity state machine
+- scoring formula/thresholds/hard gates
+- wallet cohort/AlphaWalletScore design
+- WL/Quest/UserProgress future contracts
+- Telegram severity/re-alert/fingerprint design
+- PostgreSQL persistence semantics + notification outbox
+- retries/rate limits/source degradation
+- UTC storage/KST presentation
+- secret/link safety/retention/observability
+
+### 4. Harness design — COMPLETE
+Authoritative documents:
+- `CLAUDE.md`
+- `docs/HARNESS_SPEC.md`
+- `docs/HARNESS_SCHEMAS.md`
+- `docs/PROMPT_CONTRACTS.md`
+- `docs/EVAL_FIXTURES.md`
+- `docs/HARNESS_DRY_RUN.md`
+
+Defined:
+- H0–H8 workflow gates
+- per-agent typed logical I/O contracts
+- confidence/error taxonomy
+- prompt-injection boundary
+- stop/fail conditions
+- 20 fixture families with golden outcomes
+- hard safety regression rules
+- credential-free end-to-end design dry run
+
+Important distinction:
+**Harness specification is complete; an executable harness runner/test implementation does not exist yet.** This is intentional because the current work order forbids production coding before spike validation.
+
+### 5. ADRs — ACTIVE
+- ADR-001 Alpha Radar architecture
+- ADR-002 Phase 1 scope and source degradation
+- ADR-003 PostgreSQL persistence + transactional notification outbox
+- ADR-004 explainable scoring + hard safety gates
+
+### 6. Provider paper validation — COMPLETE
+`docs/spikes/PAPER_VALIDATION-2026-08-15.md` records current first-party documentation findings.
+
+Confirmed at design level:
+- OpenSea exposes upcoming-drop/drop-detail APIs.
+- Galxe exposes structured Quest/eligibility GraphQL APIs.
+- PREMINT Connect is partner/access-gated and cannot be assumed mandatory.
+- Guild requirement logic must preserve ALL/ANY/X-of-Y and negative conditions.
+- X provides stream/search but cost must be measured in the real Developer Console.
+- Dune supports latest-results + explicit executions with credit costs.
+- Discord content/member reads depend on bot installation/privileged intents.
+- Telegram `sendMessage` is suitable for MVP notifications.
 
 ## What is NOT complete
 
-### Deep Design — INCOMPLETE
-The following are still required before production implementation:
-- canonical event schema
-- source adapter contract
-- evidence schema and evidence conflict resolution
-- project identity/entity resolution rules
-- opportunity state-machine transitions
-- quest schema and parser contract
-- scoring formulas and calibration policy
-- notification severity/urgency thresholds
-- deduplication/fingerprint rules
-- recheck scheduling policy
-- stale evidence/expiry policy
-- persistence/storage decision
-- API/runtime cost budget
-- retry/backoff/rate-limit policy
-- source failure/degradation behavior
-- chain/marketplace scope for MVP
-- timezone/deadline semantics
-- secret/config contract
-- observability/logging requirements
-- data retention policy
-- safety gate before actionable mint links
+### Operational Spikes — REQUIRED
+Contracts exist in `docs/SPIKE_PLAN.md`, results do not yet exist:
+- [ ] `SPIKE-X-001` — X access/cost/latency
+- [ ] `SPIKE-MARKET-001` — OpenSea coverage/mapping
+- [ ] `SPIKE-CAMPAIGN-001` — Galxe/PREMINT/Guild operational access
+- [ ] `SPIKE-TG-001` — actual Telegram bot delivery
+- [ ] `SPIKE-DUNE-001` — Dune freshness/credit cost (Phase 1.5 optional)
+- [ ] `SPIKE-RUNTIME-001` — Actions/serverless/worker/hybrid topology
+- [ ] `SPIKE-DISCORD-001` — server-opt-in read feasibility (Phase 3 gate, not Phase 1 blocker)
 
-### Executable Harness — INCOMPLETE
-Policies exist, but the harness is not yet executable. Missing:
-- per-agent role contracts
-- typed input/output schemas
-- fixtures representing real NFT announcements and WL quests
-- golden expected outputs
-- prompt/eval suite
-- confidence/error taxonomy
-- stop/fail/escalation conditions
-- source verification test cases
-- phishing/link-rewrite test cases
-- duplicate-alert tests
-- state-transition tests
-- scoring regression tests
-- dry-run Telegram payload tests
-- cost/latency budget assertions
-- phase-gate checklist usable by an agent before coding
+### Executable harness/runtime code — NOT STARTED
+Missing by design:
+- concrete JSON Schema/Pydantic models
+- fixture files under tests
+- fixture/eval runner
+- prompt runner
+- provider adapters
+- database migrations/repositories
+- scheduler/workers
+- Telegram outbox sender
+- CI validation workflow
+
+These are implementation artifacts and remain blocked until required Phase 1 spikes resolve.
 
 ## Coding policy
 
 ### Production feature code
-**BLOCKED** until Deep Design and Executable Harness design reach their exit criteria.
+**BLOCKED.**
+
+### Executable harness implementation
+Also **BLOCKED until required Phase 1 provider/runtime spikes resolve**, because source contracts/runtime topology could affect implementation packaging. The logical harness itself is fully specified.
 
 ### Technical spikes
-Allowed only after the spike contract is documented. A spike must:
-1. answer one uncertain technical question;
-2. have a clear success/failure condition;
-3. be disposable or isolated;
-4. not become production architecture by accident;
-5. produce a written decision/evidence record.
+**UNBLOCKED.**
+Each spike must obey `docs/SPIKE_PLAN.md` and produce a result document. Disposable spike code/scripts must be isolated and must not become production architecture by accident.
 
-Likely spikes after design completion:
-- X access/cost/rate-limit feasibility
-- PREMINT/Galxe/Guild accessible-data feasibility
-- Telegram Bot delivery end-to-end
-- Dune query/API latency and credit-cost feasibility
-- Discord permitted-read integration feasibility
-- marketplace/API coverage for selected chains
-
-## Exit gate to start Phase 1 implementation
-All must be true:
-- [ ] Deep Design checklist complete or explicitly waived in an ADR.
-- [ ] Harness contracts/schemas complete.
-- [ ] Fixture/eval plan complete.
-- [ ] Security boundaries testable.
-- [ ] MVP source scope fixed.
-- [ ] Runtime/API cost assumptions documented.
-- [ ] Required technical spikes completed and recorded.
-- [ ] Phase 1 success criteria measurable.
-- [ ] No unresolved P0 architecture ambiguity.
+## Phase 1 implementation exit gate
+All required to switch status to `PHASE_1_CODING_READY`:
+- [x] Deep Design v1 complete.
+- [x] Harness contracts/schemas complete.
+- [x] Fixture/eval/golden-output plan complete.
+- [x] Security boundaries testable in design.
+- [x] MVP domain/source scope fixed.
+- [x] Runtime/API cost guardrail model documented.
+- [x] Phase 1 success criteria measurable.
+- [x] No unresolved P0 core domain/trust-model ambiguity.
+- [ ] Required Phase 1 operational spikes completed and recorded.
+- [ ] Runtime topology ADR accepted after spike.
+- [ ] No unresolved P0 provider feasibility ambiguity.
 
 ## Next action
-Do not build collectors yet. Complete `DEEP_DESIGN_CHECKLIST.md` and `HARNESS_SPEC.md`, then run only the narrow technical spikes required to remove unresolved architecture uncertainty.
+**Do not implement the production radar yet. Run the required operational spikes in order:**
+1. X
+2. OpenSea/marketplace
+3. campaign platforms
+4. Telegram
+5. runtime topology
+
+Dune can follow as Phase 1.5 if desired; Discord is a Phase 3 gate.
+
+After those results, update ADRs/status to `PHASE_1_CODING_READY`, then implement the harness runner and Phase 1 smallest working slice under the already-defined contracts.
