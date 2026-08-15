@@ -2,129 +2,101 @@
 
 ## Current verdict
 
-**설계 골격 완료 / Deep Design v1 완료 / 정책형 Harness 완료 / Executable Harness 사양 완료 / Credential-free 설계 Dry-run 완료 / Provider Paper Validation 완료 / Operational Spike 1차 검증 완료(부분) / Credential-dependent 실측 미완료 / Harness Runner·본 구현 미착수 / Production Coding BLOCKED**
+**설계 골격 완료 / Deep Design v1 완료 / 정책형 Harness 완료 / Executable Harness 사양 완료 / Credential-free 설계 Dry-run 완료 / Provider Paper Validation 완료 / Operational Spike 2차 검증 완료(부분) / P0 실측 4건 미완료 / Harness Runner·본 구현 미착수 / Production Coding BLOCKED**
 
-This is the authoritative readiness statement until credential-dependent spike results are completed.
+This is the authoritative readiness statement until the remaining P0 operational evidence is completed.
 
-## What is complete
+## Complete
 
-### 1. Product/architecture skeleton — COMPLETE
-- Phase 1–4 boundaries exist.
-- Core entities are defined: Project, Source, Evidence, Opportunity, Quest, UserProgress, WalletEntity, InfluencerEntity, Notification.
-- Discovery and verification are explicitly separated.
-- Trust tiers T0–T4 exist.
-- Dune/wallet cohort and influencer roles are separate from official verification.
-- Telegram is the primary notification destination.
+### Product / Deep Design
+- Phase 1–4 boundaries fixed.
+- Ethereum + Base fixed as initial chains.
+- Project, Source, Evidence, Opportunity, Quest, UserProgress, WalletEntity, InfluencerEntity and Notification contracts defined.
+- Discovery vs verification and T0–T4 trust tiers defined.
+- event normalization, identity merge/split, evidence versioning/conflict handling defined.
+- opportunity state machine defined.
+- explainable Quality/Alpha/Effort/Risk scoring and hard safety gates defined.
+- wallet cohort/AlphaWalletScore design defined.
+- PostgreSQL durable state + transactional notification outbox selected.
+- UTC storage/KST presentation, retry/rate-limit/degradation/retention/observability rules defined.
 
-### 2. Source strategy / blind-spot sweep — FIRST PASS COMPLETE
-- X, official sites, PREMINT, Galxe, Guild, OpenSea, on-chain, Dune, Discord, Telegram, Reddit and optional analytics sources are classified.
-- Famous-wallet and influencer traps are documented.
-- Discord/X automation safety boundaries are documented.
-- Source ROI and time-to-alpha metrics are defined.
+### Harness design
+- `CLAUDE.md` policy harness complete.
+- H0–H8 execution gates defined.
+- logical typed agent I/O contracts defined.
+- prompt contracts and prompt-injection boundary defined.
+- 20 golden fixture families defined.
+- credential-free end-to-end design dry run complete.
 
-### 3. Deep Design v1 — COMPLETE IN DESIGN
-Authoritative documents:
-- `docs/DEEP_DESIGN.md`
-- `docs/SOURCE_ADAPTER_CONTRACTS.md`
-- `docs/WALLET_INTELLIGENCE_SPEC.md`
-- `docs/METRICS_SLO.md`
-- `docs/DEEP_DESIGN_CHECKLIST.md`
+Important: executable harness/test runner code does not exist yet by design.
 
-Decided:
-- primary user/JTBD/non-goals
-- initial chains: Ethereum + Base
-- canonical schemas/event normalization/evidence policy
-- identity merge/split and conflict resolution
-- opportunity state machine
-- explainable scoring and hard safety gates
-- wallet cohort/AlphaWalletScore design
-- WL/Quest/UserProgress future contracts
-- Telegram alert/dedup/re-alert design
-- PostgreSQL durable state + transactional outbox
-- retries/rate limits/source degradation
-- UTC storage/KST presentation
-- secret/link safety/retention/observability
+### Source/provider decisions
+- X: technically feasible; actual mode/cost unresolved.
+- OpenSea: P0 structured marketplace/drop source retained.
+- Galxe: supported API adapter, but optional/degradable.
+- PREMINT: optional partner API, not a hard dependency.
+- Guild: public-reference/manual fallback initially.
+- Dune: optional Phase 1.5 cached-first wallet intelligence.
+- Discord: Phase 3 server-opt-in/partial only.
+- Telegram: primary notification destination.
 
-### 4. Harness design — COMPLETE
-Authoritative documents:
-- `CLAUDE.md`
-- `docs/HARNESS_SPEC.md`
-- `docs/HARNESS_SCHEMAS.md`
-- `docs/PROMPT_CONTRACTS.md`
-- `docs/EVAL_FIXTURES.md`
-- `docs/HARNESS_DRY_RUN.md`
+### Runtime topology
+ADR-005 accepts a hybrid topology class:
+- urgent/stream ingestion -> persistent or event-capable low-latency runtime;
+- durable state/outbox -> PostgreSQL;
+- GitHub Actions -> non-critical batch/reconciliation/evals only.
 
-Defined:
-- H0–H8 workflow gates
-- per-agent logical typed I/O contracts
-- confidence/error taxonomy
-- prompt-injection boundary
-- stop/fail conditions
-- 20 golden fixture families
-- hard safety regression rules
-- credential-free end-to-end design dry run
+Cron-only GitHub Actions is rejected for real-time ingestion because scheduled jobs can be delayed or dropped under load.
 
-Important distinction:
-**Harness specification is complete; executable runner/test code does not exist yet.**
+## Operational validation status
+See:
+- `docs/spikes/OPERATIONAL_VALIDATION-2026-08-15.md`
+- individual `docs/spikes/SPIKE-*-RESULT.md`
+- `docs/CREDENTIAL_READINESS.md`
 
-### 5. ADRs — ACTIVE
-- ADR-001 Alpha Radar architecture
-- ADR-002 Phase 1 scope and source degradation
-- ADR-003 PostgreSQL persistence + transactional notification outbox
-- ADR-004 explainable scoring + hard safety gates
-- ADR-005 hybrid runtime topology class
+### Resolved enough for architecture
+- [x] Campaign-platform degradation model.
+- [x] Dune optionality / cached-first policy.
+- [x] Discord server-opt-in boundary.
+- [x] Hybrid runtime topology class.
+- [x] OpenSea API contract/schema suitability on first-party docs.
+- [x] Telegram protocol suitability on first-party docs.
 
-### 6. Operational Spike first-pass validation — COMPLETE AS FAR AS CURRENT CREDENTIALS/ENVIRONMENT ALLOW
-Result artifacts under `docs/spikes/` now exist.
+### Remaining P0 operational evidence
+1. **X real access/cost**
+   - Developer app/Bearer token
+   - current Developer Console endpoint prices
+   - small stream/search trial
+   - observed latency/volume
+   - projected spend
+   - final mode: STREAM_PRIMARY / SEARCH_PRIMARY / HYBRID / X_OPTIONAL
 
-- `SPIKE-X-001`: **PAPER_VALIDATED / OPERATIONAL_BLOCKED_BY_CREDENTIAL_AND_CONSOLE_PRICING**
-  - stream/search technically feasible;
-  - actual spend/latency still needs X developer credentials and console pricing.
-- `SPIKE-MARKET-001`: **PAPER_VALIDATED / OPERATIONAL_BLOCKED_BY_EXECUTION_ENVIRONMENT**
-  - OpenSea upcoming-drop API/stage mapping is suitable on paper;
-  - current execution environment could not resolve the API host for a live call.
-- `SPIKE-CAMPAIGN-001`: **PAPER_VALIDATED / MIXED_OPERATIONAL_ACCESS**
-  - Galxe has supported GraphQL API but needs token;
-  - PREMINT Connect is optional partner-key access;
-  - Guild begins as public-reference/manual fallback until a supported read API is confirmed.
-- `SPIKE-TG-001`: **PAPER_VALIDATED / OPERATIONAL_BLOCKED_BY_USER_CREDENTIALS**
-  - Bot API contract is suitable;
-  - actual one-message delivery still needs a user-created bot token/chat id.
-- `SPIKE-DUNE-001`: **PAPER_VALIDATED / OPERATIONAL_BLOCKED_BY_API_KEY**
-  - Dune is suitable for optional Phase 1.5 with cached-first/budget-capped policy.
-- `SPIKE-RUNTIME-001`: **PAPER_VALIDATED / TOPOLOGY CLASS RESOLVED**
-  - GitHub Actions cron-only rejected for real-time ingestion;
-  - hybrid topology accepted in ADR-005;
-  - concrete hosting provider depends on final X mode/budget.
-- `SPIKE-DISCORD-001`: **PAPER_VALIDATED / SERVER_OPT_IN_REQUIRED**
-  - Phase 3 is server-opt-in/partial only; no self-bots or arbitrary third-party server reads.
+2. **OpenSea live sample/coverage**
+   - live `upcoming` Ethereum/Base response from a network-capable runtime
+   - 10+ drop mappings
+   - manual coverage comparison
 
-## What is NOT complete
+   Current disposable attempt failed because this execution environment could not resolve `api.opensea.io`; this is `ENVIRONMENT_BLOCKED`, not provider failure.
 
-### Credential-dependent operational evidence — REQUIRED FOR PHASE 1 GATE
-- [ ] X Developer Console pricing + real stream/search trial.
-- [ ] Live OpenSea upcoming-drop response/coverage sample from an environment with outbound network access.
-- [ ] Galxe token live query (PREMINT/Guild remain optional fallbacks).
-- [ ] Telegram bot dry-run delivered to the user's chat.
-- [ ] Concrete low-latency hosting provider/cost selected after X mode is known.
+3. **Telegram actual delivery**
+   - user-created bot token
+   - user sends `/start`
+   - target chat id
+   - exactly one dry-run message delivered and provider result recorded
 
-### Optional later-phase evidence
-- [ ] Dune real query credit/freshness measurement (Phase 1.5).
-- [ ] Discord authorized test-server read trial (Phase 3).
+4. **Concrete low-latency hosting choice/cost**
+   - choose provider only after X final mode is known
+   - verify monthly cost and always-on/stream support if required
 
-### Executable harness/runtime code — NOT STARTED
-Missing by design:
-- concrete JSON Schema/Pydantic models
-- fixture files under tests
-- fixture/eval runner
-- prompt runner
-- provider adapters
-- database migrations/repositories
-- scheduler/workers
-- Telegram outbox sender
-- CI validation workflow
+### Non-P0 / later adapter evidence
+- [ ] Galxe live access-token query before enabling Galxe adapter in production.
+- [ ] Dune real query credit/freshness measurement — Phase 1.5.
+- [ ] Discord authorized test-server read — Phase 3.
 
-These remain implementation artifacts.
+## Credential visibility limitation
+The connected GitHub integration can modify repository contents but cannot list repository Actions secrets; the attempted secrets-list endpoint returned `403 Resource not accessible by integration`.
+
+Therefore this project must not claim that any X/Telegram/OpenSea/Galxe/Dune/Discord secret is already configured unless verified outside this connector.
 
 ## Coding policy
 
@@ -132,29 +104,27 @@ These remain implementation artifacts.
 **BLOCKED.**
 
 ### Executable harness implementation
-**BLOCKED** until the required Phase 1 credential-dependent operational evidence above resolves provider/runtime packaging assumptions.
+**BLOCKED** until remaining P0 operational evidence is resolved or explicitly waived by ADR.
 
 ### Technical spikes
-**UNBLOCKED.**
-No production code is allowed to leak out of spike work.
+**UNBLOCKED.** No spike artifact may silently become production code.
 
-## Phase 1 implementation exit gate
+## PHASE_1_CODING_READY gate
 - [x] Deep Design v1 complete.
 - [x] Harness contracts/schemas complete.
 - [x] Fixture/eval/golden-output plan complete.
 - [x] Security boundaries testable in design.
-- [x] MVP domain/source scope fixed.
+- [x] MVP scope fixed.
 - [x] Runtime/API cost guardrail model documented.
 - [x] Phase 1 success criteria measurable.
-- [x] No unresolved P0 core domain/trust-model ambiguity.
-- [x] Runtime topology class selected (hybrid; ADR-005).
-- [ ] X operational mode/cost resolved or X explicitly downgraded to optional.
-- [ ] OpenSea live mapping/coverage sample completed.
-- [ ] Galxe live API path confirmed or explicitly downgraded to optional.
+- [x] No unresolved P0 domain/trust-model ambiguity.
+- [x] Runtime topology class selected.
+- [x] Campaign adapters can degrade without changing architecture.
+- [ ] X operational mode/cost resolved or explicitly downgraded to optional.
+- [ ] OpenSea live sample/coverage completed.
 - [ ] Telegram real delivery completed.
-- [ ] Concrete low-latency runtime/provider cost selected.
+- [ ] Concrete low-latency hosting/cost selected.
 - [ ] No unresolved P0 provider feasibility ambiguity.
 
 ## Next action
-**Do not implement the production radar yet.**
-The next work is credential/configuration-assisted validation only: X, OpenSea, Galxe, Telegram, then final runtime provider selection. Dune and Discord do not block Phase 1.
+Do not implement the production radar yet. Finish the four remaining P0 operational validations. Galxe/Dune/Discord do not block Phase 1.
