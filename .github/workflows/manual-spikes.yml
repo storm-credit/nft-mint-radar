@@ -1,0 +1,75 @@
+name: Manual Operational Spikes
+
+on:
+  workflow_dispatch:
+    inputs:
+      probe:
+        description: "Which disposable spike to run"
+        required: true
+        type: choice
+        options:
+          - opensea
+          - telegram
+          - x
+      opensea_chains:
+        description: "OpenSea chain keys to try"
+        required: false
+        default: "ethereum,base,robinhood"
+        type: string
+      x_query:
+        description: "X recent-search query (used only for x probe)"
+        required: false
+        default: "(allowlist OR mint OR holders OR snapshot) -is:retweet"
+        type: string
+      paid_x_confirmation:
+        description: "For X only, type exactly: I_UNDERSTAND_X_MAY_COST"
+        required: false
+        default: ""
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  opensea:
+    if: ${{ inputs.probe == 'opensea' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run OpenSea disposable probe
+        env:
+          OPENSEA_API_KEY: ${{ secrets.OPENSEA_API_KEY }}
+        run: python spikes/opensea_probe.py --chains "${{ inputs.opensea_chains }}"
+
+  telegram:
+    if: ${{ inputs.probe == 'telegram' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run Telegram disposable delivery probe
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python spikes/telegram_probe.py --send
+
+  x:
+    if: ${{ inputs.probe == 'x' && inputs.paid_x_confirmation == 'I_UNDERSTAND_X_MAY_COST' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run guarded X paid-access probe
+        env:
+          X_BEARER_TOKEN: ${{ secrets.X_BEARER_TOKEN }}
+        run: python spikes/x_probe.py --query "${{ inputs.x_query }}" --execute-paid
+
+  x-not-confirmed:
+    if: ${{ inputs.probe == 'x' && inputs.paid_x_confirmation != 'I_UNDERSTAND_X_MAY_COST' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Refuse unconfirmed paid X probe
+        run: |
+          echo "X probe not run. Enter the exact paid-cost confirmation string in workflow_dispatch."
+          exit 2
