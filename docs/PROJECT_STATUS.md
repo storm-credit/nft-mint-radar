@@ -6,6 +6,16 @@
 
 This is the authoritative readiness statement until the remaining three P0 operational validations are completed.
 
+## Authority and start-gate rule
+- `CLAUDE.md` defines the mandatory recovery/gate workflow.
+- `docs/PRODUCTION_CODING_START_GATE.md` is the authoritative production-coding start gate.
+- A new session must recover current state and continue from the first incomplete gate; completed Deep Design must not be restarted without new P0 evidence.
+- Paper/provider-document validation must not be treated as observed operational validation.
+- Spike code remains disposable/isolated and cannot silently become production code.
+- After required spikes, results must be reconciled into design/ADRs/status before `PHASE_1_CODING_READY` is declared.
+
+Current gate state: **`SPIKE_REQUIRED / PRODUCTION CODING BLOCKED`**.
+
 ## Complete
 
 ### Product / Deep Design
@@ -124,7 +134,8 @@ Secret presence must not be guessed.
 - [ ] X operational mode/cost resolved or X explicitly downgraded to optional.
 - [ ] OpenSea live sample/coverage completed.
 - [ ] Telegram real delivery completed.
+- [ ] Spike results reconciled into canonical design/ADRs/status.
 - [ ] No unresolved P0 provider feasibility ambiguity.
 
 ## Next action
-Do not implement the production radar yet. Finish the three remaining P0 operational validations: X, OpenSea live sample, Telegram dry-run. Galxe/Dune/Discord do not block Phase 1.
+Do not implement the production radar yet. Finish the three remaining P0 operational validations: X, OpenSea live sample, Telegram dry-run. Then reconcile results through `docs/PRODUCTION_CODING_START_GATE.md`. Galxe/Dune/Discord do not block Phase 1.
