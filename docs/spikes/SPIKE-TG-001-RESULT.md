@@ -1,30 +1,53 @@
 # SPIKE-TG-001 Result — Telegram delivery
 
 ## Status
-**PAPER_VALIDATED / OPERATIONAL_BLOCKED_BY_USER_CREDENTIALS**
+**PAPER_VALIDATED / CREDENTIAL_PATH_PROBED / BLOCKED_BY_MISSING_TELEGRAM_BOT_TOKEN**
 
-No production code was written.
+No production code was written. No Telegram network send was attempted without a configured bot token.
 
-## Verified against current official Telegram Bot API
-- `sendMessage` sends text to a `chat_id` and returns the sent Message on success.
-- Message text supports 1–4096 characters after entity parsing.
-- Incoming bot updates can be consumed by either `getUpdates` long polling or webhooks, not both simultaneously.
-- `update_id` supports ordered/deduplicated processing semantics for incoming updates.
+## Protocol suitability
+Telegram remains suitable as the Phase 1 notification destination:
+- `sendMessage` returns an observable Message result on success;
+- incoming updates can establish a private chat target;
+- local outbox/fingerprint state remains responsible for deduplication because Telegram is not treated as exactly-once transport.
 
-## Result
-Delivery protocol suitability: **PASS**.
-Actual end-to-end delivery: **BLOCKED** because a bot token and target chat id are intentionally not available in the repository or current runtime.
+## Disposable spike improvements
+`spikes/telegram_probe.py` now minimizes user setup:
+- required secret: `TELEGRAM_BOT_TOKEN` only;
+- `TELEGRAM_CHAT_ID` is optional for a clean test bot;
+- if chat id is absent, the probe checks webhook state and then resolves the latest private chat via `getUpdates` after the user sends `/start`;
+- if a webhook is already active, the probe fails closed rather than silently changing webhook configuration;
+- no message is sent unless `--send` is explicitly supplied.
 
-## Required operational evidence
-- user-created Telegram bot;
-- token stored only as runtime/GitHub secret;
-- user sends `/start` to establish a chat;
-- resolve target chat id without logging the token;
-- send one dry-run alert with a correlation id;
-- confirm exactly-once user-visible delivery and record provider response.
+## Operational smoke — 2026-08-28
+GitHub Actions run:
+- run id: `33172110528`
+- job id: `98851528892`
+- workflow conclusion: success as a guarded readiness check
 
-## Decision
-Telegram remains the primary notification destination. The notifier must use outbox state and correlation/fingerprint metadata for local deduplication; Telegram itself is not treated as an exactly-once transport.
+Observed credential state:
+- `TELEGRAM_BOT_TOKEN`: **ABSENT** in the workflow secret context at this run
+- delivery step: **SKIPPED**
+- network send attempted: **false**
+- blocker artifact: `BLOCKED_BY_CREDENTIAL`
+
+The token value was never printed because no value existed in the secret context.
+
+## Exact user action required
+1. Create a bot with `@BotFather`.
+2. Add the token to repository Actions secrets as `TELEGRAM_BOT_TOKEN`.
+3. Open the bot in Telegram and send `/start` once.
+
+No chat-id lookup is normally required from the user anymore.
+
+## Remaining operational evidence
+After the token exists and `/start` has been sent:
+- rerun the guarded Telegram spike;
+- resolve private chat automatically or from optional explicit `TELEGRAM_CHAT_ID`;
+- send one Korean dry-run alert;
+- record provider message id, latency and target match;
+- confirm user-visible single delivery;
+- retain retry/dedup behavior as the notifier contract.
 
 ## Gate impact
-`BLOCKED_BY_CREDENTIAL` until one manual dry-run is completed.
+Telegram remains a Phase 1 blocker, but the blocker is now precisely **one missing user-owned credential plus `/start`** rather than an unresolved integration design.
