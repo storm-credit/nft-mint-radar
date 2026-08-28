@@ -1,15 +1,12 @@
 name: OpenSea Spike Smoke
 
 on:
-  push:
-    paths:
-      - '.github/workflows/opensea-spike-smoke.yml'
   workflow_dispatch:
 
 permissions:
   contents: read
 
-# smoke contract v2: require per-chain evidence plus stratified detail sample
+# Phase 1 provider feasibility is already validated. Keep this only for manual revalidation.
 jobs:
   probe:
     runs-on: ubuntu-latest
