@@ -1,15 +1,12 @@
 name: Telegram Spike Smoke
 
 on:
-  push:
-    paths:
-      - '.github/workflows/telegram-spike-smoke.yml'
   workflow_dispatch:
 
 permissions:
   contents: read
 
-# One-time guarded smoke: if the bot token is absent, no network send is attempted.
+# Guarded manual revalidation. If the bot token is absent, no network send is attempted.
 jobs:
   probe:
     runs-on: ubuntu-latest
