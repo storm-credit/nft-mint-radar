@@ -2,159 +2,149 @@
 
 ## Current verdict
 
-**설계 골격 완료 / Deep Design v1.1 PATCH 완료 / Blind-Spot 재검증 완료 / 정책형 Harness 완료 / Executable Harness 사양 완료 / Credential-free 설계 Dry-run 완료 / Provider Paper Validation 완료 / Runtime Provider 결정 완료 / P0 실측 3건 미완료 / Harness Runner·본 구현 미착수 / Production Coding BLOCKED**
+**Deep Design decisions accepted / Minimum-Action adoption complete in governance / Harness logical-role architecture patched / Harness typed schemas synced to ADR-008 / Eval fixtures synced / `DEEP_DESIGN.md` canonical text sync still required / P0 provider spikes 3건 미완료 / Production Coding BLOCKED**
 
-This is the authoritative readiness statement after the 2026-08-22 blind-spot re-audit.
+Current gate: **`SPIKE_REQUIRED + STALE_DERIVED_ARTIFACT / PRODUCTION CODING BLOCKED`**.
 
-## Authority and start-gate rule
-- `CLAUDE.md` defines mandatory recovery/gate workflow.
-- `docs/PRODUCTION_CODING_START_GATE.md` is the authoritative production-coding start gate.
-- `docs/BLIND_SPOT_SWEEP_2026-08-22.md` is the latest targeted Red Team audit.
-- ADR-007 and ADR-008 override older chain/price/stage/CTA assumptions where they conflict.
-- A new session continues from the first incomplete gate; completed design is not restarted without new P0 evidence.
-- Paper validation never counts as operational validation.
-- Spike artifacts remain disposable/isolated and cannot silently become production code.
+---
 
-Current gate state: **`SPIKE_REQUIRED / PRODUCTION CODING BLOCKED`**.
+## Authoritative recovery order
+1. `CLAUDE.md`
+2. this file
+3. `docs/PRODUCTION_CODING_START_GATE.md`
+4. `docs/DEEP_DESIGN.md`
+5. Accepted ADRs, especially ADR-007/008/009
+6. `docs/HARNESS_SPEC.md`
+7. `docs/HARNESS_SCHEMAS.md`
+8. `docs/EVAL_FIXTURES.md`
+9. relevant spike results
 
-## Complete
+Do not reconstruct truth from conversation history.
 
-### Product / Deep Design v1.1
-- Phase 1–4 boundaries fixed.
-- Phase 1 EVM target set fixed to **Ethereum + Base + Robinhood Chain** by ADR-007.
-- canonical Project/Source/Evidence/Opportunity/Quest/UserProgress/WalletEntity/InfluencerEntity/Notification contracts defined.
-- ADR-008 adds canonical `AssetAmount`, `MintCampaign`, `MintStage`, explicit `price_state`, and independent CTA safety state.
-- legacy-reactivation signals are explicitly modeled: `PROJECT_REACTIVATED`, `CHAIN_MIGRATION_ANNOUNCED`, `LEGACY_HOLDER_ACCESS_ANNOUNCED`.
-- discovery vs verification and T0–T4 trust tiers defined.
-- source identity trust is now explicitly separated from wallet-impacting CTA link safety.
-- event normalization, identity merge/split, evidence versioning/conflict handling defined.
-- opportunity/state semantics and stage-specific mint representation defined.
-- explainable Quality/Alpha/Effort/Risk scoring and hard safety gates defined.
-- wallet cohort/AlphaWalletScore design defined.
-- PostgreSQL durable state + transactional notification outbox selected.
-- UTC/KST, retry/rate-limit/degradation/retention/observability rules defined.
+---
 
-### Latest Blind-Spot Red Team
-`docs/BLIND_SPOT_SWEEP_2026-08-22.md` found four P0 issues and patched them without architecture reset:
-1. Robinhood Chain missing from Phase 1 scope.
-2. Official social identity was too easily conflated with CTA safety.
-3. Native-only mint-price model could not represent ERC-20-priced mints.
-4. Single-stage Opportunity model was insufficient for GTD/FCFS/community/public mint stages.
+## Completed / accepted
 
-P1 findings recorded:
-- OpenSea calendar is useful but not coverage-complete alpha discovery;
-- factory deployer attribution can mislead wallet intelligence;
-- future AlphaWallet scoring must avoid survivorship/look-ahead bias;
-- Phase 2 requires first-class manual/user-confirmed progress states.
+### Product and architecture decisions
+- Phase 1–4 boundaries accepted.
+- Phase 1 EVM target set: **Ethereum + Base + Robinhood Chain** — ADR-007.
+- OpenSea remains high-value structured source but not coverage authority — ADR-007.
+- `AssetAmount`, `MintCampaign`, `MintStage`, explicit price state, legacy-reactivation signals, and independent CTA safety accepted — ADR-008.
+- identity trust and wallet-impacting CTA safety are separate.
+- Quality / Alpha / Effort / Risk scoring + hard gates accepted.
+- PostgreSQL + transactional notification outbox accepted.
+- Railway hybrid runtime target accepted; no production deployment yet.
 
-Architecture verdict remains **KEEP + targeted PATCH**, not NEW DESIGN.
+### Minimum-Action governance
+- `docs/MINIMUM_ACTION_ADOPTION.md` added.
+- ADR-009 accepted.
+- root `CLAUDE.md` reduced to constitution/authority pointers instead of duplicating domain truth.
+- production hot path is deterministic-first; logical roles are not automatically separate agents.
+- project-designed model-driven nodes target <=5 meaningful peer choices.
+- Agent creation requires a real context/tool/permission/evidence/failure/independent-judgment boundary.
+- minimal context bundles and independent critic isolation defined.
+- Shadow Authority / Stale Derived Artifact are explicit Red Team checks.
 
-### Harness design
-- `CLAUDE.md` policy harness complete.
-- H0–H8 execution gates defined.
-- logical typed agent I/O contracts defined.
-- prompt contracts/prompt-injection boundary defined.
-- existing golden fixture families defined; ADR-008 requires additional multi-stage/ERC20/compromised-official-channel fixtures before runner freeze.
-- credential-free end-to-end design dry run complete.
+### Harness synchronization completed
+- `HARNESS_SPEC.md` now classifies logical roles by implementation mechanism.
+- `HARNESS_SCHEMAS.md` v1.1 now includes campaign/stage refs, CTA safety state, user-confirmed progress, independent critic and local-action-space audit.
+- `EVAL_FIXTURES.md` now includes multi-stage, ERC-20 price, FREE vs UNKNOWN, compromised official account, revocation, legacy reactivation, manual progress and weak-reading critic cases.
 
-Executable harness/test runner code does not exist yet by design.
+---
 
-### Source/provider decisions
-- X: technically feasible; actual mode/cost unresolved.
-- OpenSea: P0 structured drop/stage source retained, but **not treated as coverage-complete discovery**.
-- Galxe: supported API adapter, optional/degradable.
-- PREMINT: optional partner API.
-- Guild: public-reference/manual fallback initially.
-- Dune: optional Phase 1.5 cached-first wallet intelligence.
-- Discord: Phase 3 server-opt-in/partial only.
-- Telegram: primary notification destination.
+## Current stale artifact — P0 governance issue
 
-### Runtime provider — RESOLVED
-ADR-005 defines hybrid topology.
-ADR-006 selects **Railway** as Phase 1 MVP runtime target.
+### `docs/DEEP_DESIGN.md`
+Accepted ADR-007/008 override portions of its older text, but the canonical file still contains stale statements including:
+- Phase 1 chain list `Ethereum + Base` only;
+- old single-`Opportunity` mint representation;
+- `mint_price_native`;
+- older event taxonomy without legacy-reactivation events;
+- older CTA rule that can be read as trusting T1 identity too directly.
 
-Target:
-- Railway `radar-worker` for persistent stream or polling;
-- Railway PostgreSQL for canonical state + outbox;
-- GitHub Actions only for non-critical batch/reconciliation/eval.
+Therefore **do not call Deep Design text fully synchronized yet**.
 
-No Railway account activation, purchase or deployment has been performed during the no-production-coding validation phase.
+Governance rule until sync:
+- ADR-007/008 govern conflicts.
+- `DEEP_DESIGN.md` is `STALE_PARTIAL` for the affected sections.
+- Production Coding Start Gate remains blocked even if provider spikes later pass, until canonical sync is complete.
 
-## Operational validation artifacts
-See:
-- `docs/spikes/OPERATIONAL_VALIDATION-2026-08-15.md`
-- `docs/CREDENTIAL_READINESS.md`
-- individual `docs/spikes/SPIKE-*-RESULT.md`
+This is a targeted PATCH requirement, not a redesign.
 
-## Remaining P0 operational evidence — THREE
+---
 
-### 1. X real access/cost
-Needed:
-- X Developer app/Bearer token;
-- current Developer Console endpoint prices;
-- small stream/search trial;
-- observed latency and delivered/noise volume;
-- spend projection;
-- final mode: `STREAM_PRIMARY`, `SEARCH_PRIMARY`, `HYBRID`, or `X_OPTIONAL`.
+## Remaining P0 provider evidence — 3
 
-### 2. OpenSea live sample/coverage
-Needed:
-- live `upcoming` sample across **Ethereum + Base + Robinhood Chain**;
-- 10+ real drops mapped through `MintCampaign`/`MintStage` and asset-aware pricing;
-- at least one allowlist-stage case and, if present, ERC-20-priced case;
-- manual comparison against opportunities discovered outside OpenSea to quantify calendar coverage gaps.
+### X
+Need real developer access/pricing + small trial:
+- latency
+- delivered/noise volume
+- spend projection
+- final mode: STREAM_PRIMARY / SEARCH_PRIMARY / HYBRID / X_OPTIONAL
 
-Previous API attempt was environment-blocked, not provider-failed. Public OpenSea pages currently demonstrate Robinhood Chain NFT mint/allowlist activity, so the chain-scope patch is evidence-driven.
+### OpenSea
+Need live API sample across Ethereum/Base/Robinhood:
+- 10+ drops mapped to MintCampaign/MintStage
+- allowlist/multi-stage example
+- ERC-20 price case if present
+- coverage comparison against outside discovery
 
-### 3. Telegram actual delivery
-Needed:
-- user-created bot token;
-- user sends `/start`;
-- target chat id;
-- one dry-run alert delivered exactly once from our local/outbox semantics;
-- Korean text and safe verified-link rendering checked.
+### Telegram
+Need one actual user-visible dry run:
+- bot token through secret/runtime only
+- chat target established
+- Korean message
+- safe CTA rendering
+- dedup/outbox semantics observed
 
-## Non-P0 / later adapter evidence
-- [ ] Galxe live access-token query before enabling Galxe adapter in production.
-- [ ] Dune real query credit/freshness measurement — Phase 1.5.
-- [ ] Discord authorized test-server read — Phase 3.
-- [ ] Railway account/outbound-connectivity activation check before actual deployment.
+---
 
-## Credential visibility limitation
-The connected GitHub integration cannot safely establish whether repository/runtime secrets are already configured. Secret presence must not be guessed.
+## Non-blocking later evidence
+- Galxe live token/query before production adapter enablement.
+- Dune freshness/credits — Phase 1.5.
+- Discord authorized server read — Phase 3.
+- Railway outbound/runtime activation check before deployment.
+
+---
 
 ## Coding policy
 
 ### Production feature code
 **BLOCKED.**
 
-### Executable harness implementation
-**BLOCKED** until remaining P0 operational evidence is resolved or explicitly waived by ADR, and ADR-008 fixture additions are included in runner acceptance criteria.
-
 ### Technical spikes
-**UNBLOCKED.** No spike artifact may silently become production code.
+**UNBLOCKED** and must stay disposable/isolated.
 
-## PHASE_1_CODING_READY gate
-- [x] Deep Design v1.1 complete after latest P0 patch.
-- [x] Harness contracts/schemas complete in design.
-- [x] Fixture/eval/golden-output plan exists.
-- [x] Security boundaries testable in design.
-- [x] MVP scope fixed to Ethereum/Base/Robinhood Chain.
-- [x] Runtime/API cost guardrail model documented.
-- [x] Phase 1 success criteria measurable.
-- [x] No unresolved P0 domain/trust-model ambiguity after ADR-007/ADR-008.
-- [x] Runtime topology/provider selected (Railway).
-- [x] Campaign adapters can degrade without changing architecture.
-- [ ] X operational mode/cost resolved or X explicitly downgraded to optional.
+### Harness runner
+May be implemented only after:
+1. `DEEP_DESIGN.md` stale sections are synchronized;
+2. local-action-space audit is recorded for model-driven nodes;
+3. runner acceptance uses current v1.1 schemas/fixtures.
+
+---
+
+## PHASE_1_CODING_READY checklist
+- [x] Product/architecture decisions accepted.
+- [x] Latest blind-spot P0 decisions accepted via ADR-007/008.
+- [x] Minimum-Action governance adopted via ADR-009.
+- [x] Harness logical roles no longer imply agent-per-role architecture.
+- [x] Harness schemas synchronized to ADR-008.
+- [x] Eval fixture set synchronized to current safety/stage model.
+- [ ] `DEEP_DESIGN.md` canonical stale sections synchronized.
+- [ ] model-driven local-action-space audit recorded.
+- [ ] X operational mode/cost resolved or explicitly downgraded optional.
 - [ ] OpenSea live multi-chain/multi-stage sample completed.
 - [ ] Telegram real delivery completed.
-- [ ] Spike results reconciled into canonical design/ADRs/status.
-- [ ] No unresolved P0 provider feasibility ambiguity.
+- [ ] spike results reconciled into canonical docs/ADRs/status.
+- [ ] no unresolved P0 provider or authority inconsistency.
+
+---
 
 ## Next action
-Do not implement the production radar yet. Continue operational spikes in the smallest actionable order:
-1. OpenSea live sample when API credential/runtime access is available;
-2. Telegram real dry-run when bot configuration is available;
-3. X access/cost trial when Developer credentials/pricing are available.
 
-If credentials are not yet available, prepare only disposable spike runners/contracts; do not start production collectors.
+1. **Synchronize `DEEP_DESIGN.md` to ADR-007/008 without redesign.**
+2. Run local-action-space audit for only the planned model-driven nodes.
+3. Resume smallest provider spikes: OpenSea -> Telegram -> X as credentials/access permit.
+4. Re-evaluate `PRODUCTION_CODING_START_GATE.md`.
+
+Do not start production collectors before these gates close.
