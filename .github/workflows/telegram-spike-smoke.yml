@@ -1,0 +1,43 @@
+name: Telegram Spike Smoke
+
+on:
+  push:
+    paths:
+      - '.github/workflows/telegram-spike-smoke.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# One-time guarded smoke: if the bot token is absent, no network send is attempted.
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check credential presence without exposing value
+        id: credential
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        run: |
+          if [ -z "$TELEGRAM_BOT_TOKEN" ]; then
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            echo '{"status":"BLOCKED_BY_CREDENTIAL","secret":"TELEGRAM_BOT_TOKEN","network_send_attempted":false}' | tee telegram-spike-result.json
+          else
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Run Telegram disposable delivery probe
+        if: steps.credential.outputs.available == 'true'
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          SPIKE_RUN_ID: gh-${{ github.run_id }}-${{ github.run_attempt }}
+        run: python spikes/telegram_probe.py --send | tee telegram-spike-result.json
+      - name: Upload retained probe output
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: telegram-spike-result
+          path: telegram-spike-result.json
+          if-no-files-found: warn
