@@ -12,14 +12,14 @@ on:
           - telegram
           - x
       opensea_chains:
-        description: "OpenSea chain keys to try"
+        description: "OpenSea chain keys/aliases to try"
         required: false
         default: "ethereum,base,robinhood"
         type: string
       x_query:
         description: "X recent-search query (used only for x probe)"
         required: false
-        default: "(allowlist OR mint OR holders OR snapshot) -is:retweet"
+        default: "from:opensea (mint OR drop OR allowlist) -is:retweet"
         type: string
       paid_x_confirmation:
         description: "For X only, type exactly: I_UNDERSTAND_X_MAY_COST"
@@ -39,8 +39,10 @@ jobs:
       - uses: actions/checkout@v4
       - name: Run OpenSea disposable probe
         env:
+          # Optional. If absent, the spike requests an instant free-tier key in memory.
           OPENSEA_API_KEY: ${{ secrets.OPENSEA_API_KEY }}
-        run: python spikes/opensea_probe.py --chains "${{ inputs.opensea_chains }}"
+          OPENSEA_CHAINS: ${{ inputs.opensea_chains }}
+        run: python spikes/opensea_probe.py --chains "$OPENSEA_CHAINS" --limit 30 --detail-limit 10
 
   telegram:
     if: ${{ inputs.probe == 'telegram' }}
@@ -51,7 +53,9 @@ jobs:
       - name: Run Telegram disposable delivery probe
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          # Optional. If absent, the spike resolves the latest private bot chat after /start.
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          SPIKE_RUN_ID: gh-${{ github.run_id }}-${{ github.run_attempt }}
         run: python spikes/telegram_probe.py --send
 
   x:
@@ -63,7 +67,8 @@ jobs:
       - name: Run guarded X paid-access probe
         env:
           X_BEARER_TOKEN: ${{ secrets.X_BEARER_TOKEN }}
-        run: python spikes/x_probe.py --query "${{ inputs.x_query }}" --execute-paid
+          X_QUERY: ${{ inputs.x_query }}
+        run: python spikes/x_probe.py --query "$X_QUERY" --max-results 10 --execute-paid
 
   x-not-confirmed:
     if: ${{ inputs.probe == 'x' && inputs.paid_x_confirmation != 'I_UNDERSTAND_X_MAY_COST' }}
