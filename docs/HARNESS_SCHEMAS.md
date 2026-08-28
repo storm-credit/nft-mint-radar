@@ -1,69 +1,94 @@
 # Harness Typed Schemas
 
 ## Purpose
-Machine-checkable logical contracts for agent inputs/outputs. Implementation may use JSON Schema/Pydantic/TypeScript, but field names/semantics below are authoritative until versioned.
+Machine-checkable **logical role** contracts. A schema section does not imply a separate autonomous agent.
+Implementation mechanism is governed by `HARNESS_SPEC.md`, `MINIMUM_ACTION_ADOPTION.md`, and ADR-009.
+
+Domain types such as `Project`, `Evidence`, `Opportunity`, `MintCampaign`, `MintStage`, `AssetAmount`, `VerifiedLink`, `Quest`, and `UserProgress` come from `DEEP_DESIGN.md` plus Accepted ADRs. Do not create divergent domain copies here.
 
 ## Common envelope
 ```yaml
-AgentEnvelope:
-  schema_version: "1.0"
+ExecutionEnvelope:
+  schema_version: "1.1"
   correlation_id: string
   run_id: string
-  agent: string
+  role: string
   observed_at: datetime_utc
   input_refs: [string]
   assumptions: [string]
   warnings: [string]
 ```
 
-## Confidence / evidence enums
+## Shared enums
 ```yaml
 Confidence: LOW|MEDIUM|HIGH
 VerificationState: UNVERIFIED|CORROBORATED|OFFICIAL|CONFLICTED|REVOKED|STALE
+CTASafetyState: UNVERIFIED|CONSISTENT|QUARANTINED|REVOKED
 ActionClass: WATCH|APPLY_WL|PREPARE|MINT_RECHECK|AVOID|NO_ALERT
 ```
 
-## Discovery Agent
+---
+
+## Discovery Extraction
 ### Input
 ```yaml
 DiscoveryInput:
-  envelope: AgentEnvelope
+  envelope: ExecutionEnvelope
   raw_event: RawEvent
   known_project_candidates: [ProjectRef]
+  source_identity: SourceRef
 ```
+
 ### Output
 ```yaml
 DiscoveryOutput:
-  envelope: AgentEnvelope
+  envelope: ExecutionEnvelope
   disposition: CANDIDATE|IGNORE|DUPLICATE|NEEDS_IDENTITY_RESOLUTION
   project_candidate:
     name: string|null
     project_id: string|null
     confidence: Confidence
-  candidate_types: [PROJECT_SIGNAL|ALLOWLIST|MINT|AIRDROP|WALLET_SIGNAL|RISK_SIGNAL|OTHER]
+  candidate_types:
+    - PROJECT_SIGNAL
+    - PROJECT_REACTIVATED
+    - CHAIN_MIGRATION
+    - LEGACY_HOLDER_ACCESS
+    - ALLOWLIST
+    - MINT
+    - AIRDROP
+    - WALLET_SIGNAL
+    - RISK_SIGNAL
+    - OTHER
   extracted_links: [string]
   extracted_claims: [NormalizedClaim]
   discovery_reason: [string]
   required_verification: [string]
 ```
-Forbidden:
-- verified CTA from T3/T4 only;
-- investment/profit guarantee language.
 
-## Verification Agent
+Forbidden:
+- verified CTA from T3/T4 alone;
+- profit/investment guarantee;
+- silently upgrading an extracted link to safe action link.
+
+---
+
+## Verification
 ### Input
 ```yaml
 VerificationInput:
-  envelope: AgentEnvelope
+  envelope: ExecutionEnvelope
   project: Project|null
+  campaign: MintCampaign|null
+  stage: MintStage|null
   claims: [NormalizedClaim]
   evidence: [Evidence]
   links: [VerifiedLink]
 ```
+
 ### Output
 ```yaml
 VerificationOutput:
-  envelope: AgentEnvelope
+  envelope: ExecutionEnvelope
   claims:
     - claim_key: string
       normalized_value: any
@@ -74,25 +99,43 @@ VerificationOutput:
       valid_until: datetime_utc|null
       reason: string
   verified_links: [VerifiedLink]
-  hard_blocks: [UNVERIFIED_LINK|IDENTITY_UNCERTAIN|CONFLICTING_OFFICIAL_SOURCES|PHISHING_SUSPECTED|NONE]
+  cta_safety:
+    state: CTASafetyState
+    checked_url: string|null
+    checked_host: string|null
+    contract_address: string|null
+    evidence_ids: [string]
+    reason: string|null
+  hard_blocks:
+    - UNVERIFIED_LINK
+    - IDENTITY_UNCERTAIN
+    - CONFLICTING_OFFICIAL_SOURCES
+    - CTA_QUARANTINED
+    - PHISHING_SUSPECTED
+    - NONE
   recheck_at: datetime_utc|null
 ```
 
-## Entity Resolution Agent
+Hard rule: T1 source identity alone cannot set CTA safety to `CONSISTENT` when a wallet-impacting action link is new/changed.
+
+---
+
+## Entity Resolution
 ### Input
 ```yaml
 EntityResolutionInput:
-  envelope: AgentEnvelope
+  envelope: ExecutionEnvelope
   candidate_name: string
   links: [string]
   contract_addresses: [string]
   candidate_projects: [Project]
   evidence: [Evidence]
 ```
+
 ### Output
 ```yaml
 EntityResolutionOutput:
-  envelope: AgentEnvelope
+  envelope: ExecutionEnvelope
   decision: MATCH_EXISTING|CREATE_NEW|SPLIT_REQUIRED|UNRESOLVED
   project_id: string|null
   confidence: Confidence
@@ -102,21 +145,33 @@ EntityResolutionOutput:
       reason: string
 ```
 
-## Opportunity State Agent
+---
+
+## Campaign / Stage / Opportunity State
 ### Input
 ```yaml
-OpportunityStateInput:
-  envelope: AgentEnvelope
+CampaignStageStateInput:
+  envelope: ExecutionEnvelope
+  campaign: MintCampaign|null
+  stage: MintStage|null
   opportunity: Opportunity|null
   verified_claims: [VerifiedClaim]
   current_time: datetime_utc
 ```
+
 ### Output
 ```yaml
-OpportunityStateOutput:
-  envelope: AgentEnvelope
-  previous_state: string|null
-  proposed_state: string
+CampaignStageStateOutput:
+  envelope: ExecutionEnvelope
+  campaign_state:
+    previous: string|null
+    proposed: string|null
+  stage_state:
+    previous: string|null
+    proposed: string|null
+  opportunity_state:
+    previous: string|null
+    proposed: string|null
   transition: ACCEPT|REJECT|NO_CHANGE|CORRECTION
   changed_fields: [string]
   evidence_ids: [string]
@@ -124,12 +179,18 @@ OpportunityStateOutput:
   reason: string
 ```
 
-## Scoring Agent
+Hard rule: stage price/time/max-per-wallet facts remain stage-specific and must not be collapsed into one campaign-wide value when they differ.
+
+---
+
+## Scoring
 ### Input
 ```yaml
 ScoringInput:
-  envelope: AgentEnvelope
+  envelope: ExecutionEnvelope
   project: Project
+  campaign: MintCampaign|null
+  stage: MintStage|null
   opportunity: Opportunity|null
   verified_claims: [VerifiedClaim]
   wallet_signals: [WalletSignal]
@@ -137,10 +198,11 @@ ScoringInput:
   effort_features: [EffortFeature]
   risk_features: [RiskFeature]
 ```
+
 ### Output
 ```yaml
 ScoringOutput:
-  envelope: AgentEnvelope
+  envelope: ExecutionEnvelope
   score_version: "v1"
   quality_score: number_0_100
   alpha_score: number_0_100
@@ -158,22 +220,29 @@ ScoringOutput:
   unsupported_assumptions: [string]
 ```
 
-## Wallet Intelligence Agent
+Scoring calculation and hard gates are deterministic/versioned by default.
+
+---
+
+## Wallet Intelligence
 ### Input
 ```yaml
 WalletIntelInput:
-  envelope: AgentEnvelope
+  envelope: ExecutionEnvelope
   wallet_events: [WalletEvent]
   wallet_entities: [WalletEntity]
   benchmark_context: object|null
 ```
+
 ### Output
 ```yaml
 WalletIntelOutput:
-  envelope: AgentEnvelope
+  envelope: ExecutionEnvelope
   signals:
     - wallet_entity_id: string
       project_id: string|null
+      campaign_id: string|null
+      stage_id: string|null
       opportunity_id: string|null
       signal_type: MINT|BUY|TRANSFER|CONTRACT_INTERACTION|COHORT_HIT|OTHER
       entry_percentile: number|null
@@ -188,19 +257,27 @@ WalletIntelOutput:
     strength: NONE|WEAK|MEDIUM|STRONG
 ```
 
-## Quest Parser Agent
+---
+
+## Quest Parser — Phase 2
 ### Input
 ```yaml
 QuestParserInput:
-  envelope: AgentEnvelope
+  envelope: ExecutionEnvelope
+  project: Project
+  campaign: MintCampaign|null
+  stage: MintStage|null
   opportunity: Opportunity
   source_texts: [SourceText]
   structured_campaign_payloads: [object]
 ```
+
 ### Output
 ```yaml
 QuestParserOutput:
-  envelope: AgentEnvelope
+  envelope: ExecutionEnvelope
+  campaign_id: string|null
+  stage_id: string|null
   allocation_type: FCFS|RAFFLE|GUARANTEED|HOLDER|PUBLIC|UNKNOWN
   quests: [Quest]
   registration_open_at: datetime_utc|null
@@ -211,32 +288,45 @@ QuestParserOutput:
   forbidden_auto_actions: [string]
 ```
 
-## User Progress Agent
+---
+
+## User Progress — Phase 2+
 ### Input
 ```yaml
 UserProgressInput:
-  envelope: AgentEnvelope
+  envelope: ExecutionEnvelope
   opportunity: Opportunity
+  campaign: MintCampaign|null
+  stage: MintStage|null
   quests: [Quest]
   external_verification_results: [object]
   prior_progress: [UserProgress]
+  user_confirmed_actions: [object]
 ```
+
 ### Output
 ```yaml
 UserProgressOutput:
-  envelope: AgentEnvelope
+  envelope: ExecutionEnvelope
   progress: [UserProgress]
   eligibility: UNKNOWN|NOT_READY|READY_TO_REGISTER|REGISTERED|WON|WAITLISTED|LOST|READY_TO_MINT
   missing_required_tasks: [string]
   next_manual_action: string|null
+  inferred_completion_count: 0
 ```
 
-## Decision Agent
+Hard rule: planned/recommended work is not completion. Manual progress requires user/provider evidence.
+
+---
+
+## Decision
 ### Input
 ```yaml
 DecisionInput:
-  envelope: AgentEnvelope
+  envelope: ExecutionEnvelope
   project: Project
+  campaign: MintCampaign|null
+  stage: MintStage|null
   opportunity: Opportunity|null
   scoring: ScoringOutput
   verification: VerificationOutput
@@ -244,10 +334,11 @@ DecisionInput:
   user_progress: UserProgressOutput|null
   current_time: datetime_utc
 ```
+
 ### Output
 ```yaml
 DecisionOutput:
-  envelope: AgentEnvelope
+  envelope: ExecutionEnvelope
   action: ActionClass
   severity: INFO|WATCH|ACTION|URGENT|WARNING
   should_notify: boolean
@@ -256,45 +347,106 @@ DecisionOutput:
   missing_information: [string]
   material_change_keys: [string]
   cta_link: VerifiedLink|null
+  cta_safety_state: CTASafetyState
   recheck_at: datetime_utc|null
   reasons: [string]
 ```
+
 Hard rules:
-- `cta_link` must be null if not OFFICIAL/CORROBORATED according to claim class.
-- Risk >=70 => action cannot be APPLY_WL/PREPARE/MINT_RECHECK.
+- `cta_link` must be null unless wallet-impacting CTA safety is `CONSISTENT`;
+- `QUARANTINED`/`REVOKED` => no APPLY_WL/PREPARE/MINT_RECHECK CTA;
+- Risk >=70 => action cannot be APPLY_WL/PREPARE/MINT_RECHECK;
 - LOW evidence => action cannot exceed WATCH.
+
+---
 
 ## Telegram Renderer
 ### Input
 ```yaml
 TelegramRenderInput:
-  envelope: AgentEnvelope
+  envelope: ExecutionEnvelope
   project: Project
+  campaign: MintCampaign|null
+  stage: MintStage|null
   opportunity: Opportunity|null
   scoring: ScoringOutput
   decision: DecisionOutput
   top_evidence: [Evidence]
 ```
+
 ### Output
 ```yaml
 TelegramRenderOutput:
-  envelope: AgentEnvelope
-  text: string              # <=4096 chars
+  envelope: ExecutionEnvelope
+  text: string
   parse_mode: string|null
   fingerprint: string
   contains_cta: boolean
-  cta_verification_state: OFFICIAL|CORROBORATED|NONE
+  cta_safety_state: CONSISTENT|NONE
 ```
+
 Forbidden:
-- unverified URLs rendered as action CTA;
-- secrets/raw auth tokens;
-- automatic transaction/signature instructions represented as completed actions.
+- unverified/quarantined/revoked wallet-impacting URL as CTA;
+- secrets/raw auth token;
+- auto transaction/signature/social action represented as completed.
+
+---
+
+## Independent Critic
+### Input
+```yaml
+CriticInput:
+  envelope: ExecutionEnvelope
+  artifact_ref: string
+  artifact: object|string
+  requirements: [string]
+  constraints: [string]
+  acceptance_criteria: [string]
+  verification_evidence: [string]
+```
+
+Builder rationale is intentionally absent by default.
+
+### Output
+```yaml
+CriticOutput:
+  envelope: ExecutionEnvelope
+  verdict: PASS|PATCH|CUT|BLOCK
+  findings:
+    - severity: P0|P1|P2
+      clause_or_area: string
+      issue: string
+      undefined_terms: [string]
+      weakest_reading: string|null
+      evidence_refs: [string]
+      required_change: string|null
+  residual_risks: [string]
+```
+
+---
+
+## Local Action Space Audit
+```yaml
+LocalActionSpaceAudit:
+  node: string
+  model_driven: boolean
+  meaningful_peer_choices: integer
+  deterministic_choices_excluded:
+    - choice: string
+      enforcing_mechanism: string
+  open_argument_callables: [string]
+  status: PASS|WAIVER_REQUIRED|SCOPE_LIMIT_REQUIRED|NOT_APPLICABLE
+  record_ref: string|null
+```
+
+A generic router/shell does not reduce count when the model still chooses the underlying means.
+
+---
 
 ## Validation Result
-Every feature/spike/eval reports:
 ```yaml
 ValidationResult:
-  schema_version: "1.0"
+  schema_version: "1.1"
   subject: string
   status: PASS|FAIL|PARTIAL|BLOCKED
   checks:
@@ -308,15 +460,17 @@ ValidationResult:
   next_gate: string|null
 ```
 
-## Error taxonomy v1
+## Error taxonomy v1.1
 - SOURCE_UNAVAILABLE
 - AUTH_REQUIRED
 - PERMISSION_REQUIRED
 - RATE_LIMITED
 - STALE_EVIDENCE
+- STALE_DERIVED_ARTIFACT
 - IDENTITY_UNCERTAIN
 - CONFLICTING_OFFICIAL_SOURCES
 - UNVERIFIED_LINK
+- CTA_QUARANTINED
 - PHISHING_SUSPECTED
 - SCHEMA_PARSE_FAILED
 - DUPLICATE_EVENT
