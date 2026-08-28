@@ -1,236 +1,140 @@
 # Architecture
 
 ## Product direction
-Implement Phase 1 first, but preserve interfaces for Phase 2–4.
+Implement Phase 1 first while preserving interfaces for Phase 2–4. The production hot path is **deterministic-first**; logical roles do not imply autonomous agents.
 
-## Four architecture options
-
-### Option A — Simple Mint Radar
-Collectors -> basic scoring -> Telegram
-
-Pros:
-- fastest implementation
-- cheapest
-
-Cons:
-- weak allowlist support
-- difficult to evolve without refactor
-
-### Option B — Alpha Radar (chosen MVP)
-Collectors -> event normalization -> evidence verification -> project/opportunity scoring -> decision engine -> Telegram
-
-Pros:
-- useful immediately
-- preserves evidence and trust boundaries
-- supports Phase 2 later
-
-Cons:
-- more structure than A
-
-### Option C — Alpha + Quest
-Option B + quest parser + effort scoring + user task tracker
-
-Pros:
-- directly optimizes WL acquisition
-
-Cons:
-- broader API/LLM/test surface
-- premature for first integration pass
-
-### Option D — Personal NFT Alpha Agent
-Option C + Discord intelligence + watched wallets + personal eligibility + wallet/on-chain cohort engine + daily action planner
-
-Pros:
-- end-state product
-
-Cons:
-- over-scoped for initial implementation
-- more credentials, permissions, failure modes and operating cost
-
-## Decision
-Use B as Phase 1 implementation target while modeling the domain so C/D can be added without reworking core entities.
-
-## Logical pipeline
+## Chosen architecture
+ADR-001 chose Alpha Radar rather than a simple mint calendar. ADR-007/008/009 subsequently patch chain scope, mint-stage modeling, CTA safety, and orchestration.
 
 ```text
-Collectors
-  X / websites / PREMINT / Galxe / Guild / marketplaces
-  Dune / on-chain / watched wallets
-  Reddit / Telegram / community (weak discovery)
+Source adapters
+  official site / X / OpenSea / Galxe / on-chain
+  optional PREMINT / Guild / Dune / Telegram source
+  weak Reddit / community discovery
         |
         v
-Event Normalizer
+RawEvent normalization
         |
         v
-Evidence Store + Source Trust
+Evidence Store + Project Identity
         |
-        +-------------------+
-        |                   |
-        v                   v
-Project Engine        Opportunity Engine
-        |                   |
-        v                   v
-Quality/Alpha       WL/Mint State Machine
-Risk Scores               |
-        |                  +---- Phase 2: Quest Parser / Effort Score
-        |                  +---- Phase 3: Discord Progress
-        +---------+---------+
-                  v
-            Decision Engine
-                  |
-                  v
-       Dedup / Urgency / Recheck
-                  |
-                  v
-              Telegram
+        +----------------------+
+        |                      |
+        v                      v
+Verification / CTA       MintCampaign
+Safety Rules                 |
+        |                  MintStage
+        |                      |
+        +----------+-----------+
+                   v
+              Opportunity
+                   |
+          Quality / Alpha /
+          Effort / Risk
+          deterministic score
+                   |
+                   v
+             Decision Gates
+                   |
+          Dedup / Recheck /
+       Transactional Outbox
+                   |
+                   v
+               Telegram
 ```
 
-## Core entities
+Conditional model-driven nodes are limited to unstructured extraction, ambiguous entity resolution, Phase 2 quest parsing, and independent critique. See ADR-009 and `LOCAL_ACTION_SPACE_AUDIT.md`.
+
+## Phase 1 chain scope
+- Ethereum
+- Base
+- Robinhood Chain
+
+EVM-first only. Non-EVM expansion requires a separate ADR.
+
+## Core domain
 
 ### Project
-- id
-- name
-- chain(s)
-- official links
-- status
-- quality_score
-- alpha_score
-- risk_score
-- evidence confidence
+Identity, aliases, chains, official relations, contracts and lifecycle.
 
 ### Source
-- source_type
-- trust_tier
-- role(s)
-- URL/identifier
-- account/entity identity
+Source type, trust tier, role, identity, auth profile and health.
 
 ### Evidence
-- project_id/opportunity_id
-- source
-- captured_at
-- claim key/value
-- raw excerpt/reference hash if permitted
-- confidence
-- verification state
+Append-only support for claims. Can reference Project, Campaign, Stage or Opportunity.
+
+### MintCampaign
+One collection/drop campaign on a chain/contract.
+
+### MintStage
+Stage-specific GTD/allowlist/holder/community/FCFS/raffle/public terms including time, allocation, asset-aware price and max-per-wallet.
 
 ### Opportunity
-Types:
-- ALLOWLIST
-- RAFFLE
-- HOLDER_MINT
-- FREE_MINT
-- PAID_MINT
-- PUBLIC_MINT
-- AIRDROP
-- OTHER
+The action/prioritization object. It can reference one Campaign/Stage; it does not duplicate all mint-stage facts.
 
-State examples:
-- RUMORED
-- DISCOVERED
-- REGISTRATION_PENDING
-- REGISTRATION_OPEN
-- REGISTRATION_CLOSED
-- RESULTS_PENDING
-- WON
-- WAITLISTED
-- LOST
-- MINT_SCHEDULED
-- MINT_OPEN
-- ENDED
-- CANCELLED
+### Quest — Phase 2
+Required/optional eligibility actions. Social/Discord/wallet-impacting actions are manual only.
 
-### Quest (Phase 2)
-Types:
-- FOLLOW_X
-- LIKE_X
-- REPOST_X
-- COMMENT_X
-- TAG_FRIEND
-- JOIN_DISCORD
-- DISCORD_ROLE
-- DISCORD_LEVEL
-- GALXE
-- GUILD
-- PREMINT_REGISTER
-- HOLD_NFT
-- HOLD_TOKEN
-- ONCHAIN_ACTION
-- REFERRAL
-- CUSTOM
+### UserProgress — Phase 2+
+Explicit progress with provenance; recommendations never equal completion.
 
-Quest execution is never automated if it requires user-account impersonation, wallet signing, spam or prohibited automation.
-
-### WalletEntity
-Represents watched public wallets or cohorts.
-Do not treat public identity labels as immutable truth; identity mappings require evidence and confidence.
-
-### InfluencerEntity
-Separate from WalletEntity because social influence and on-chain skill are not the same signal.
-
-### UserProgress
-Phase 2+ only:
-- opportunity
-- quest
-- status
-- verified_at
-- source
+### WalletEntity / InfluencerEntity
+Kept separate because on-chain behavior, public identity and social influence are different evidence regimes.
 
 ### Notification
-- fingerprint
-- severity
-- action
-- reason
-- sent_at
-- last_material_change
+Deduplicated action alert with campaign/stage context and current safety state.
 
-## Scoring model outline
-Keep component scores separate.
+## Trust and CTA model
+`source identity trust != claim verification != CTA safety`.
 
-- Quality: 0–100, higher better
-- Alpha: 0–100, higher earlier/more under-discovered
-- Effort: 0–100, lower better
-- Risk: 0–100, lower better
-- Evidence confidence: LOW/MEDIUM/HIGH
+A T1 official account can still be compromised. Wallet-impacting CTA is rendered only when current link/contract evidence produces `ActionLinkAssessment=CONSISTENT`.
 
-Action score must be explainable. No black-box 'buy score'.
+## Scoring
+Keep separate, explainable components:
+- Quality 0–100 — higher better
+- Alpha 0–100 — higher earlier/better
+- Effort 0–100 — lower better
+- Risk 0–100 — lower better
+- Evidence confidence
 
-## Dune / wallet cohort architecture
-Dune is an optional analytics adapter, not a runtime dependency for every alert.
+Deterministic formula/hard gates own the numeric decision. No black-box buy score and no guaranteed-return output.
 
-Initial queries/specs:
-1. `watched_wallet_recent_nft_interactions`
-2. `early_minter_history_by_wallet`
-3. `successful_collection_first_n_minter_overlap`
-4. `collection_unique_wallet_velocity`
-5. `holder_concentration`
-6. `deployer_funder_graph`
-7. `wash_like_counterparty_score`
+## Wallet intelligence
+Dune/other analytics are optional adapters, never mandatory for core alerts.
 
-Later proprietary signal:
-`AlphaWalletScore = repeated early entry quality + independence + persistence - manipulation/sybil/wash/conflict penalties`
+Potential queries:
+1. watched-wallet recent NFT interactions
+2. early-minter history
+3. first-N minter overlap
+4. unique-wallet velocity
+5. holder concentration
+6. deployer/funder/factory graph
+7. wash-like counterparty score
 
-A cohort hit is stronger than one celebrity-wallet hit.
+A cohort of independently successful early minters is stronger than one celebrity wallet. Factory/deployer relations are not creator provenance without corroboration.
 
 ## Operational boundaries
-- no private keys
-- no wallet signing
-- no transaction execution
-- no self-bots
-- no fake engagement
-- no unaudited auto-follow/auto-repost behavior
-- official URLs must be verified before notification CTA
+- no private keys / seed
+- no wallet signing / approval / transaction execution
+- no Discord self-bot
+- no automated social engagement/referral farming
+- no unverified or quarantined wallet-impacting CTA
+- source failures degrade independently
+- paid adapters have hard budgets
 
 ## Phase roadmap
 
 ### Phase 1 — Discovery + Verification + Scoring + Telegram
-Deliverable: useful S/A candidate alerts with evidence and next action.
+Deliverable: useful S/A candidate alerts with evidence, campaign/stage context and safe next action.
 
 ### Phase 2 — WL / Quest Intelligence
-Deliverable: parse qualification tasks, deadline and effort; maintain user checklist.
+Deliverable: parse qualification tasks, deadline and effort; maintain explicit user checklist/progress.
 
 ### Phase 3 — Discord Intelligence
-Deliverable: permitted read-only announcement/role/progress intelligence; no user self-bot.
+Deliverable: permitted server-opt-in announcement/role/progress intelligence; no user self-bot.
 
-### Phase 4 — Personal Alpha Agent
+### Phase 4 — Personal Alpha Assistant
 Deliverable: wallet eligibility + task state + watched-wallet cohorts + final mint re-evaluation + daily action summary.
+
+## Authority
+Detailed field semantics live in `DEEP_DESIGN.md` + Accepted ADRs. This file is architecture overview only and must not become a second schema authority.
