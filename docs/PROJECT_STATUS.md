@@ -2,7 +2,7 @@
 
 ## Current verdict
 
-**Deep Design decisions accepted / Minimum-Action adoption complete in governance / Harness logical-role architecture patched / Harness typed schemas synced to ADR-008 / Eval fixtures synced / `DEEP_DESIGN.md` canonical text sync still required / P0 provider spikes 3건 미완료 / Production Coding BLOCKED**
+**Deep Design decisions accepted / Minimum-Action adoption complete in governance / Harness logical-role architecture patched / Harness typed schemas synced to ADR-008 / Eval fixtures synced / Local Action Space audit PASS / `DEEP_DESIGN.md` canonical text sync still required / P0 provider spikes 3건 미완료 / Production Coding BLOCKED**
 
 Current gate: **`SPIKE_REQUIRED + STALE_DERIVED_ARTIFACT / PRODUCTION CODING BLOCKED`**.
 
@@ -17,7 +17,8 @@ Current gate: **`SPIKE_REQUIRED + STALE_DERIVED_ARTIFACT / PRODUCTION CODING BLO
 6. `docs/HARNESS_SPEC.md`
 7. `docs/HARNESS_SCHEMAS.md`
 8. `docs/EVAL_FIXTURES.md`
-9. relevant spike results
+9. `docs/LOCAL_ACTION_SPACE_AUDIT.md`
+10. relevant spike results
 
 Do not reconstruct truth from conversation history.
 
@@ -40,15 +41,15 @@ Do not reconstruct truth from conversation history.
 - ADR-009 accepted.
 - root `CLAUDE.md` reduced to constitution/authority pointers instead of duplicating domain truth.
 - production hot path is deterministic-first; logical roles are not automatically separate agents.
-- project-designed model-driven nodes target <=5 meaningful peer choices.
 - Agent creation requires a real context/tool/permission/evidence/failure/independent-judgment boundary.
 - minimal context bundles and independent critic isolation defined.
 - Shadow Authority / Stale Derived Artifact are explicit Red Team checks.
+- `LOCAL_ACTION_SPACE_AUDIT.md` records four planned model-driven nodes; designed-node waivers = 0 and all counts PASS.
 
 ### Harness synchronization completed
-- `HARNESS_SPEC.md` now classifies logical roles by implementation mechanism.
-- `HARNESS_SCHEMAS.md` v1.1 now includes campaign/stage refs, CTA safety state, user-confirmed progress, independent critic and local-action-space audit.
-- `EVAL_FIXTURES.md` now includes multi-stage, ERC-20 price, FREE vs UNKNOWN, compromised official account, revocation, legacy reactivation, manual progress and weak-reading critic cases.
+- `HARNESS_SPEC.md` classifies logical roles by implementation mechanism.
+- `HARNESS_SCHEMAS.md` v1.1 includes campaign/stage refs, CTA safety state, user-confirmed progress, independent critic and local-action-space audit.
+- `EVAL_FIXTURES.md` includes multi-stage, ERC-20 price, FREE vs UNKNOWN, compromised official account, revocation, legacy reactivation, manual progress and weak-reading critic cases.
 
 ---
 
@@ -64,9 +65,9 @@ Accepted ADR-007/008 override portions of its older text, but the canonical file
 
 Therefore **do not call Deep Design text fully synchronized yet**.
 
-Governance rule until sync:
+Governance until sync:
 - ADR-007/008 govern conflicts.
-- `DEEP_DESIGN.md` is `STALE_PARTIAL` for the affected sections.
+- `DEEP_DESIGN.md` is `STALE_PARTIAL` for affected sections.
 - Production Coding Start Gate remains blocked even if provider spikes later pass, until canonical sync is complete.
 
 This is a targeted PATCH requirement, not a redesign.
@@ -118,8 +119,7 @@ Need one actual user-visible dry run:
 ### Harness runner
 May be implemented only after:
 1. `DEEP_DESIGN.md` stale sections are synchronized;
-2. local-action-space audit is recorded for model-driven nodes;
-3. runner acceptance uses current v1.1 schemas/fixtures.
+2. runner acceptance uses current v1.1 schemas/fixtures.
 
 ---
 
@@ -130,8 +130,8 @@ May be implemented only after:
 - [x] Harness logical roles no longer imply agent-per-role architecture.
 - [x] Harness schemas synchronized to ADR-008.
 - [x] Eval fixture set synchronized to current safety/stage model.
+- [x] Model-driven local-action-space audit recorded and PASS.
 - [ ] `DEEP_DESIGN.md` canonical stale sections synchronized.
-- [ ] model-driven local-action-space audit recorded.
 - [ ] X operational mode/cost resolved or explicitly downgraded optional.
 - [ ] OpenSea live multi-chain/multi-stage sample completed.
 - [ ] Telegram real delivery completed.
@@ -143,8 +143,7 @@ May be implemented only after:
 ## Next action
 
 1. **Synchronize `DEEP_DESIGN.md` to ADR-007/008 without redesign.**
-2. Run local-action-space audit for only the planned model-driven nodes.
-3. Resume smallest provider spikes: OpenSea -> Telegram -> X as credentials/access permit.
-4. Re-evaluate `PRODUCTION_CODING_START_GATE.md`.
+2. Resume smallest provider spikes: OpenSea -> Telegram -> X as credentials/access permit.
+3. Re-evaluate `PRODUCTION_CODING_START_GATE.md`.
 
 Do not start production collectors before these gates close.
