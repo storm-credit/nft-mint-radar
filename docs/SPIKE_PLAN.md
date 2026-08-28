@@ -1,293 +1,149 @@
 # Technical Spike Plan
 
 ## Purpose
-Spikes answer architecture-threatening uncertainties without allowing disposable experiments to become production code by accident.
+Spikes answer provider/architecture uncertainties without allowing disposable experiments to become production code.
 
 Rules:
-- every spike answers one bounded question;
-- no production feature code during spike work;
-- credentials are never committed;
-- each spike produces a written result and ADR impact;
-- if a provider cannot be accessed without paid/partner credentials, that itself is a valid result;
-- a failed spike must leave the core architecture operational through adapter degradation/fallback.
-
-## SPIKE-X-001 — X discovery access/cost
-
-### Question
-Can official-project X posts and WL/giveaway signals be detected with acceptable latency and predictable spend for the expected watched-account/query count?
-
-### Current documentation facts to validate operationally
-- X supports recent search and filtered stream.
-- Filtered Stream supports up to 1,000 rules and one pay-per-use connection according to current docs.
-- Usage billing is separate from rate limits and current endpoint pricing is visible in the Developer Console.
-
-### Hypotheses
-H1: Filtered Stream is the best fit for a bounded watchlist of official accounts/keywords when spend is acceptable.
-H2: Recent-search polling is a viable degraded mode for smaller watchlists or budget constraints.
-
-### Method
-1. Record current Developer Console pricing/budget options without exposing keys.
-2. Build no production adapter; use curl/API explorer or disposable script outside production package.
-3. Test 10 representative account rules + WL keywords.
-4. Measure delivered-post count, false positives, detection latency, reconnect behavior, and estimated monthly spend.
-5. Compare against recent-search polling at 5/10/15 minute cadence.
-
-### Success
-- p95 detection latency <= 10 minutes for official target posts;
-- monthly cost can be bounded under the chosen user budget;
-- no need for prohibited scraping;
-- rule/watchlist capacity is sufficient for MVP.
-
-### Failure
-- required spend is materially higher than budget;
-- access tier unavailable;
-- false-positive retrieval makes spend unpredictable;
-- latency cannot meet 15 minutes reliably.
-
-### Cost/time cap
-- no more than the smallest practical paid test budget without explicit user approval;
-- 1 bounded experiment session.
-
-### Artifact
-`docs/spikes/SPIKE-X-001-RESULT.md`
-
-### Decision unlocked
-ADR chooses STREAM_PRIMARY, SEARCH_PRIMARY, HYBRID, or X_OPTIONAL.
+- one bounded question per spike;
+- no production feature code;
+- no committed credentials;
+- explicit success/failure/cost cap;
+- result retained under `docs/spikes/`;
+- provider failure must degrade behind an adapter, not break core architecture;
+- paid calls require the smallest practical test budget and explicit user approval where new spend is required.
 
 ---
 
-## SPIKE-CAMPAIGN-001 — PREMINT / Galxe / Guild feasibility
-
+## SPIKE-MARKET-001 — OpenSea live coverage/mapping — Phase 1 BLOCKING
 ### Question
-Which allowlist/quest platforms provide stable programmatic data for discovery, requirements, deadlines, and eligibility without fragile scraping?
-
-### Known starting facts
-- Galxe exposes Quest/eligibility data via authenticated GraphQL API.
-- PREMINT Connect exposes project info/list/wallet status to approved integration partners and requires an API key application.
-- Guild exposes rich requirement/role concepts publicly; exact data access surface for our read-side use must be validated.
+Does live OpenSea data provide useful structured discovery/stage evidence across **Ethereum + Base + Robinhood Chain**, while remaining incomplete enough that outside discovery is still necessary?
 
 ### Method
-Galxe:
-1. Test token acquisition requirements.
-2. Query one public quest and capture status/start/end/cap/participant/credential structure.
-3. Check whether task requirements can be normalized without user wallet.
-
-PREMINT:
-1. Determine whether project metadata can be accessed through PREMINT Connect for our use case.
-2. If partner key is unavailable, document official/public fallback and do not scrape protected content.
-
-Guild:
-1. Determine whether public guild/role/requirement data has supported API/query endpoints or stable public representations permitted for access.
-2. Capture one representative ALL/ANY requirement tree.
+1. Use disposable probe with `OPENSEA_API_KEY`.
+2. Fetch upcoming/listed drops across target chains where API supports filtering/enumeration.
+3. Fetch details for >=10 representative drops.
+4. Map to `Project -> MintCampaign -> MintStage -> Opportunity`.
+5. Verify stage-specific allocation/time/max/price state.
+6. Include multi-stage allowlist/public case; include ERC-20-priced case if present.
+7. Compare against a small manual/off-OpenSea discovery sample.
 
 ### Success
-At least Galxe has a supported structured path; PREMINT/Guild each have either a supported adapter path or an explicit optional/manual fallback.
+- >=10 real samples map without source-specific core-schema hacks;
+- multi-stage values remain stage-specific;
+- FREE/KNOWN/UNKNOWN/VARIABLE price states map correctly;
+- missing coverage is measurable and OpenSea is not treated as completeness authority.
 
 ### Failure
-Any provider is treated as mandatory despite inaccessible/unstable data.
-
-### Cost/time cap
-No paid partner plan purchase without user approval.
-
-### Artifact
-`docs/spikes/SPIKE-CAMPAIGN-001-RESULT.md`
-
-### Decision unlocked
-Per-platform source adapter mode: API, OPTIONAL_API, PUBLIC_REFERENCE_ONLY, or DISABLED.
-
----
-
-## SPIKE-TG-001 — Telegram delivery
-
-### Question
-Can the notification outbox reliably deliver concise action alerts to the user's Telegram chat with dedup-safe observable success/failure?
-
-### Known starting facts
-Telegram Bot API `sendMessage` accepts text up to 4096 characters and returns the sent Message on success.
-
-### Method
-1. User creates bot/token and supplies it only through GitHub Secret/runtime environment.
-2. Resolve a target chat id through a user-initiated bot conversation.
-3. Send one dry-run message containing markdown-safe fields, KST deadline, verified-link placeholder, and correlation id.
-4. Record HTTP/result semantics, retry behavior, and formatting constraints.
-
-### Success
-- dry-run delivered once;
-- delivery response is observable;
-- token is not logged;
-- duplicate retry can be suppressed through outbox state.
-
-### Failure
-- credentials cannot be configured safely;
-- delivery state cannot be observed/reconciled.
-
-### Artifact
-`docs/spikes/SPIKE-TG-001-RESULT.md`
-
-### Decision unlocked
-Telegram notifier implementation contract.
-
----
-
-## SPIKE-DUNE-001 — Dune wallet-cohort analytics
-
-### Question
-Can Dune provide enough freshness, reproducibility and affordable query execution/result retrieval to support Alpha Wallet/cohort signals without becoming a hard dependency?
-
-### Known starting facts
-- Dune can execute saved/SQL queries asynchronously.
-- latest query results can be fetched without triggering execution, but result retrieval consumes credits based on result size.
-- execution costs depend on actual compute resources; result filtering/column selection can reduce transfer/cost.
-
-### Method
-Define two disposable queries:
-1. recent NFT interactions for a small seed wallet list;
-2. overlap of early minters across a small benchmark collection set.
-
-Measure:
-- execution time;
-- execution credits;
-- result retrieval credits/size;
-- freshness when using latest cached result;
-- benefit of server-side filters/columns;
-- reproducibility across reruns.
-
-### Success
-- cached/latest result can support most frequent reads;
-- fresh execution cadence can be bounded to a practical budget;
-- query results can emit deterministic WalletSignal fixtures;
-- core radar continues when Dune is unavailable.
-
-### Failure
-- freshness/cost unsuitable even at low cadence;
-- query semantics too unstable for reproducible cohort signals.
-
-### Artifact
-`docs/spikes/SPIKE-DUNE-001-RESULT.md`
-
-### Decision unlocked
-Refresh cadence, cached-vs-execute policy, and whether Phase 1.5 is enabled.
-
----
-
-## SPIKE-DISCORD-001 — permitted Discord intelligence
-
-### Question
-Can official Discord announcements and user role/progress state be read with server-approved bot/API access for enough projects to justify Phase 3?
-
-### Known starting facts
-- Discord bots use REST and/or Gateway.
-- message content is a privileged intent.
-- guild-member access is also privileged and relevant to role/member state.
-- apps need to be installed/invited to a server with appropriate permissions; arbitrary third-party server access must not be assumed.
-
-### Method
-1. Use only a server where the bot is explicitly permitted.
-2. Test reading a configured announcement channel.
-3. Test member role data for the bot's authorized context.
-4. Record required scopes/intents/permissions and what is unavailable when not installed.
-5. Do not automate user messages/activity.
-
-### Success
-- supported read path works in authorized servers;
-- missing access degrades to official-link/manual requirement tracking;
-- no self-bot/user-token use.
-
-### Failure
-- useful coverage requires unauthorized user automation or widespread server-admin cooperation impossible for the product.
-
-### Artifact
-`docs/spikes/SPIKE-DISCORD-001-RESULT.md`
-
-### Decision unlocked
-Phase 3 becomes SERVER_OPT_IN only, PARTIAL, or DISABLED.
-
----
-
-## SPIKE-MARKET-001 — Marketplace/drop coverage
-
-### Question
-Are OpenSea APIs sufficient for the MVP's Ethereum/Base upcoming-drop discovery and mint-stage metadata, and what additional marketplace is actually justified by unique lead value?
-
-### Known starting facts
-Current OpenSea API includes:
-- `/api/v2/drops?type=upcoming`;
-- drop details including stages, pricing and supply;
-- collection/account/NFT event endpoints;
-- API key authentication.
-
-### Method
-1. Fetch upcoming drops filtered to Ethereum/Base.
-2. Fetch details for representative drops and map stages to Opportunity.
-3. Compare returned projects against a small manual sample of known upcoming NFT activity.
-4. Measure unique discovery value and missing coverage.
-5. Evaluate Magic Eden/other adapter only if the gap is material.
-
-### Success
-- OpenSea maps cleanly into canonical schemas;
-- missing coverage is measurable;
-- no speculative multi-market implementation is required.
-
-### Failure
-- OpenSea's upcoming calendar misses too much of target NFT alpha to serve as a P0 structured source.
+- live data cannot represent target opportunities without material domain redesign;
+- target-chain support/fields are materially insufficient for useful P0 structured evidence.
 
 ### Artifact
 `docs/spikes/SPIKE-MARKET-001-RESULT.md`
 
-### Decision unlocked
-MVP marketplace source set.
-
 ---
 
-## SPIKE-RUNTIME-001 — scheduler/runtime model
-
+## SPIKE-TG-001 — Telegram delivery — Phase 1 BLOCKING
 ### Question
-Can GitHub Actions satisfy Phase 1 polling/delivery latency and stateful reliability, or is a long-running/serverless worker required?
-
-### Four candidate models
-A. GitHub Actions cron only
-B. Serverless scheduled functions
-C. Long-running worker + PostgreSQL
-D. Hybrid: Actions for batch/Dune, worker/serverless for low-latency feeds
+Can one action alert be delivered safely and observably to the user's Telegram with local dedup/outbox semantics?
 
 ### Method
-Use expected source cadences after X/market spikes and compare:
-- minimum/reliable schedule granularity;
-- state/cursor handling;
-- secret handling;
-- concurrency/idempotency;
-- always-on stream support;
-- monthly operational cost.
+1. user-created bot/token only via secret/runtime;
+2. user starts bot; establish chat target;
+3. send one dry-run Korean message with safe placeholder/CONSISTENT link state and correlation test id;
+4. observe provider result;
+5. exercise retry/dedup behavior without creating a notification storm.
 
 ### Success
-Choose a model that can meet alert latency SLO without abusing a scheduler or losing event cursors.
-
-### Failure
-Selecting GitHub Actions simply because the repository is on GitHub despite incompatible streaming/state needs.
+- user sees one intended dry-run;
+- secret not logged;
+- response observable;
+- retry/dedup behavior recorded.
 
 ### Artifact
-`docs/spikes/SPIKE-RUNTIME-001-RESULT.md`
-
-### Decision unlocked
-ADR for deployment/runtime topology.
+`docs/spikes/SPIKE-TG-001-RESULT.md`
 
 ---
 
-## Spike order
-1. `SPIKE-X-001`
-2. `SPIKE-MARKET-001`
-3. `SPIKE-CAMPAIGN-001`
-4. `SPIKE-TG-001`
-5. `SPIKE-DUNE-001`
-6. `SPIKE-RUNTIME-001`
-7. `SPIKE-DISCORD-001` (Phase 3 gate; not required to begin Phase 1 if designed as optional)
+## SPIKE-X-001 — X discovery access/cost — Phase 1 BLOCKING unless X becomes optional
+### Question
+Can official-project/reactivation/WL signals be detected with acceptable latency/noise and bounded spend?
+
+### Candidate modes
+- STREAM_PRIMARY
+- SEARCH_PRIMARY
+- HYBRID
+- X_OPTIONAL
+
+### Method
+1. record current Developer Console price/budget without exposing keys;
+2. disposable API test only;
+3. test representative official accounts + narrow keywords;
+4. measure delivered volume, useful/noise ratio, observed latency/reconnect/catch-up;
+5. project spend for realistic watchlist sizes;
+6. compare stream vs 5/10/15m search polling if available.
+
+### Success
+- p95 official-target detection <=10m or clearly acceptable degraded mode;
+- spend is predictably bounded under approved budget;
+- no prohibited scraping;
+- MVP watchlist capacity is adequate.
+
+### Failure
+- access/tier unavailable;
+- spend materially exceeds budget;
+- retrieval noise makes spend unpredictable;
+- latency fails practical alert goal.
+
+### Safety
+X probe requires explicit acknowledgment before any potentially charged call.
+
+### Artifact
+`docs/spikes/SPIKE-X-001-RESULT.md`
+
+---
+
+# Non-blocking adapter spikes
+
+## SPIKE-CAMPAIGN-001 — Galxe / PREMINT / Guild
+Goal: select `API|OPTIONAL_API|PUBLIC_REFERENCE_ONLY|DISABLED` without protected scraping.
+
+- Galxe structured path should be validated before production adapter enablement.
+- PREMINT partner access is optional.
+- Guild must have supported/public access or remain reference-only.
+
+Artifact: `docs/spikes/SPIKE-CAMPAIGN-001-RESULT.md`.
+
+## SPIKE-DUNE-001 — wallet cohort analytics — Phase 1.5
+Measure cached/fresh result latency, credits/size, reproducibility and benchmark validity. Core radar must survive Dune unavailable.
+
+Also validate AlphaWallet evaluation out-of-sample to reduce survivorship/look-ahead bias.
+
+Artifact: `docs/spikes/SPIKE-DUNE-001-RESULT.md`.
+
+## SPIKE-DISCORD-001 — permitted Discord intelligence — Phase 3
+Use only explicitly authorized server/bot access. Test announcement read/member role data and required intents/permissions. No user token/self-bot/activity automation.
+
+Artifact: `docs/spikes/SPIKE-DISCORD-001-RESULT.md`.
+
+## SPIKE-RUNTIME-001 — runtime topology — RESOLVED
+Prior spike/ADR selected hybrid topology with Railway worker + PostgreSQL and GitHub Actions only for non-critical batch/eval. Do not reopen absent new P0 evidence.
+
+---
+
+## Current execution order
+Use the smallest actionable order based on current blockers/credentials:
+1. `SPIKE-MARKET-001` — OpenSea
+2. `SPIKE-TG-001` — Telegram
+3. `SPIKE-X-001` — X
+
+Campaign/Dune/Discord do not block Phase 1 unless a future ADR makes them mandatory.
 
 ## Phase 1 coding gate
-Required spike results before production Phase 1 code:
-- X: resolved or explicitly optional
-- Marketplace: resolved
-- Campaign platforms: resolved enough to select adapters
-- Telegram: delivery/config contract resolved
-- Runtime: resolved
-
-Dune may remain Phase 1.5 optional. Discord may remain Phase 3 optional.
+Before production Phase 1 code:
+- OpenSea live mapping resolved;
+- Telegram delivery/config resolved;
+- X resolved or explicitly optional by ADR;
+- runtime already resolved;
+- spike results reconciled into canonical design/status;
+- no stale derived authority remains;
+- no unresolved P0 provider feasibility ambiguity.
