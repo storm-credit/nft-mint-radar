@@ -83,19 +83,26 @@ Production harness runner code is not required before this design gate; producti
 
 ## E. Phase 1 Blocking Operational Spikes
 
-### OpenSea
-- [ ] live upcoming/listed sample succeeds across target chains as available through provider API;
-- [ ] >=10 real drops map to Project/MintCampaign/MintStage/Opportunity;
-- [ ] real multi-stage allowlist/public mapping verified;
-- [ ] asset-aware price mapping verified, including non-native token if present;
-- [ ] coverage gap vs off-OpenSea discovery documented;
-- [ ] failure/degradation behavior confirmed.
+### OpenSea — CLOSED
+Observed live via GitHub Actions on 2026-08-28; see `docs/spikes/SPIKE-MARKET-001-RESULT.md`.
+
+- [x] instant credential path succeeds without committed secret;
+- [x] provider chain keys resolve: Ethereum / Base / Robinhood;
+- [x] live combined/per-chain upcoming queries succeed;
+- [x] >=10 real details fetched and mapped structurally;
+- [x] real multi-stage presale/GTD/FCFS/holder/public structures observed;
+- [x] Robinhood multi-stage structures observed;
+- [x] coverage gap documented: successful Base endpoint returned zero upcoming while active Base mint surfaces existed;
+- [x] environment-specific DNS degradation observed and isolated from provider feasibility;
+- [x] unknown/non-native payment asset behavior has a fail-closed domain path and does not require architecture change.
+
+OpenSea provider feasibility no longer blocks Phase 1. OpenSea remains **not** a completeness authority.
 
 ### Telegram
 - [ ] bot token only through secret/runtime;
-- [ ] chat target established after user starts bot;
+- [ ] user sends `/start`; chat target resolves through explicit config or bounded `getUpdates` fallback;
 - [ ] one real Korean dry-run arrives once under local dedup semantics;
-- [ ] safe CTA rendering checked;
+- [ ] safe CTA/no-CTA rendering checked;
 - [ ] failure/retry result recorded.
 
 ### X
@@ -115,14 +122,16 @@ Production harness runner code is not required before this design gate; producti
 - [ ] Guild supported integration if enabled.
 - [ ] Discord authorized server read — Phase 3.
 - [ ] Railway outbound/runtime activation check before actual deployment.
+- [ ] targeted non-native OpenSea payment-asset sample when available; current UNKNOWN path is fail-closed.
 
 ---
 
 ## G. Freeze reconciliation
-After E passes or named items are explicitly waived:
-- [ ] save spike results;
+After remaining Telegram/X items pass or named items are explicitly waived:
+- [x] OpenSea spike result saved and reconciled;
+- [ ] save Telegram/X spike results;
 - [ ] reconcile observed provider evidence into canonical design/ADR/status;
-- [ ] update source modes/cost assumptions;
+- [ ] update X source mode/cost assumptions;
 - [ ] verify no derived schema/prompt/fixture/spike mapping is stale;
 - [ ] freeze Phase 1 source/runtime configuration;
 - [ ] confirm no unresolved P0 provider ambiguity.
@@ -130,7 +139,7 @@ After E passes or named items are explicitly waived:
 ---
 
 ## H. Coding authorization
-Only after E + G are complete (or explicit named ADR waiver) set:
+Only after the remaining E + G items are complete (or explicit named ADR waiver) set:
 
 `PHASE_1_CODING_READY`
 
@@ -164,6 +173,5 @@ If later evidence invalidates frozen assumption:
 **`SPIKE_REQUIRED / PRODUCTION CODING BLOCKED`**
 
 Only Phase 1 blocking evidence remaining:
-1. OpenSea live multi-chain/multi-stage mapping/coverage;
-2. Telegram real delivery;
-3. X operational access/cost/mode.
+1. Telegram real delivery;
+2. X operational access/cost/mode.
