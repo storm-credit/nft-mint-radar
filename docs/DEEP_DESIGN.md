@@ -1,78 +1,113 @@
-# Deep Design
+# Deep Design v1.1
 
-## 0. Readiness intent
-This document converts the architecture skeleton into a concrete design contract. Production feature code remains blocked until the spike gates in `SPIKE_PLAN.md` are resolved or explicitly waived by ADR.
+## 0. Readiness and authority
+This document is the canonical domain/runtime design contract for the current pre-production phase.
 
-## 1. Product contract
+Accepted decisions incorporated here:
+- ADR-007 — Phase 1 chain scope and OpenSea role.
+- ADR-008 — MintCampaign/MintStage, asset-aware pricing, legacy reactivation, CTA safety separation.
+- ADR-009 — Minimum-action deterministic-first orchestration.
 
-### Primary user
-A single NFT participant who wants to discover credible allowlist/mint opportunities early enough to act, while minimizing wasted social/Discord work and phishing risk.
+Production feature code remains blocked until `PRODUCTION_CODING_START_GATE.md` passes.
 
-### Primary job-to-be-done
+---
+
+# 1. Product contract
+
+## Primary user
+A single NFT participant who wants to discover credible allowlist/mint opportunities early enough to act while minimizing wasted social/Discord work, bad mints, and phishing risk.
+
+## Primary job-to-be-done
 `Find -> verify -> prioritize -> tell me exactly what matters next.`
 
-The product must answer:
+The product answers:
 1. What opportunity appeared?
-2. Is it official/credible?
-3. Is it still early enough to act?
-4. What must the user do now or later?
-5. How much time/cost/risk is involved?
-6. What changed since the last alert?
+2. Is the project/source/CTA credible right now?
+3. Is it early enough to act?
+4. Which exact campaign/stage is relevant?
+5. What must the user do now/later?
+6. What time/cost/risk is involved?
+7. What changed since the previous alert?
 
-### Phase 1 success conditions
-- Candidate events from configured sources are normalized into one canonical event model.
-- Actionable facts are never promoted from T3/T4 discovery-only sources without corroboration.
-- S/A alerts contain evidence confidence, KST deadline when known, next action, and only verified official links.
-- Duplicate/repeated signals do not create duplicate notifications.
-- A changed official deadline/risk state can create a material-change re-alert.
-- No wallet signature, approval, transaction, social engagement or Discord self-bot path exists.
+## Phase 1 success conditions
+- configured sources normalize into canonical events/evidence;
+- T3/T4 discovery signals cannot become actionable facts without corroboration;
+- project/source identity trust is separated from wallet-impacting CTA safety;
+- S/A alerts show evidence confidence, KST deadline, next action, and stage-specific terms when known;
+- multi-stage GTD/FCFS/holder/community/public structures remain distinct;
+- FREE, known asset price, unknown price, and variable price remain distinct;
+- duplicate/repeated signals do not create duplicate alerts;
+- material correction/cancellation/risk changes can re-alert;
+- no wallet signature, approval, transaction, social engagement, Discord self-bot, or fake referral path exists.
 
-### Phase 1 source scope
-P0 runtime-capable sources:
-- official websites/docs discovered from verified project identities
-- official X when API/access budget allows; adapter must degrade cleanly if unavailable
-- OpenSea upcoming/drop detail APIs
-- Galxe Quest API for known/discovered quests
-- public on-chain evidence through explorers/RPC/indexed APIs chosen per chain
+## Phase 1 source scope
 
-P1/optional adapters:
-- PREMINT Connect when API access is available; otherwise official registration URL is tracked as evidence and parsed manually/through permitted page access
-- Guild public requirement pages/API surfaces when available
-- Dune latest-query results / selected parameterized queries
-- official Telegram announcement channels when lawful/public access is available
+### P0 runtime-capable
+- official websites/docs from verified project identity;
+- official X when API/access budget permits, degradable if unavailable;
+- OpenSea drop/detail/stage APIs;
+- Galxe Quest API for known/discovered quests where access is available;
+- public EVM on-chain evidence through chain explorer/RPC/indexer adapter.
 
-Phase 1 discovery-only weak sources:
-- Reddit
-- public Telegram alpha groups
-- generic X accounts
-- influencer/collector posts
+### P1 optional
+- PREMINT Connect when partner/API access exists; otherwise official registration reference/manual permitted ingest;
+- Guild supported public/API surface if available;
+- Dune latest-query/parameterized results;
+- official Telegram announcement channels when permitted.
 
-### Initial chain scope
-- Ethereum
-- Base
+### weak discovery only
+- Reddit;
+- public Telegram alpha groups;
+- generic X accounts;
+- influencer/collector chatter.
 
-Rationale: keep the first contract/deployer/mint model EVM-only. Add Solana or other chains only through a new chain-adapter ADR after Phase 1 is stable.
+## Phase 1 chain scope
+EVM-first:
+1. Ethereum
+2. Base
+3. Robinhood Chain
 
-### Explicit non-goals
-- auto minting
-- wallet signing/approval
-- private-key/seed handling
-- automated X follow/like/repost/comment/tag
-- automated Discord chat/activity/referral farming
-- guaranteed profit or financial advice
-- universal coverage of every chain/marketplace in Phase 1
+Persist normalized chain identity, not display text only.
 
-## 2. Canonical schemas
+```yaml
+ChainIdentity:
+  chain_key: string
+  eip155_chain_id: integer|null
+  display_name: string
+  native_symbol: string|null
+```
 
-Schemas below are logical contracts. Implementation may use Pydantic/JSON Schema/TypeScript types but field semantics must remain stable.
+No Solana/Bitcoin/non-EVM expansion in Phase 1 without a new ADR.
 
-### 2.1 Project
+## OpenSea role
+OpenSea is:
+- strong structured discovery for listed drops;
+- strong structured verification support for stage/price/schedule when project identity is corroborated;
+- **not** complete global discovery coverage.
+
+Missing from OpenSea never means the project/mint does not exist.
+
+## Explicit non-goals
+- auto minting;
+- wallet signing/approval;
+- private-key/seed handling;
+- automated X follow/like/repost/comment/tag;
+- automated Discord chat/activity/referral farming;
+- guaranteed profit/return prediction;
+- universal chain/marketplace coverage in Phase 1.
+
+---
+
+# 2. Canonical schemas
+Implementation may use Pydantic/JSON Schema/TypeScript, but field semantics below remain stable unless versioned/changed by ADR.
+
+## 2.1 Project
 ```yaml
 Project:
-  id: string                       # internal stable UUID
+  id: string
   canonical_name: string
   aliases: [string]
-  chains: [string]
+  chains: [ChainIdentity]
   official_links:
     website: [VerifiedLink]
     x: [VerifiedLink]
@@ -81,12 +116,12 @@ Project:
     docs: [VerifiedLink]
     opensea: [VerifiedLink]
   contracts: [ContractIdentity]
-  status: DISCOVERED|ACTIVE|DORMANT|ENDED|SUSPECT|BLOCKED
+  status: DISCOVERED|ACTIVE|DORMANT|REACTIVATED|ENDED|SUSPECT|BLOCKED
   created_at: datetime_utc
   updated_at: datetime_utc
 ```
 
-### 2.2 Source
+## 2.2 Source
 ```yaml
 Source:
   id: string
@@ -100,11 +135,13 @@ Source:
   health: HEALTHY|DEGRADED|DISABLED|UNKNOWN
 ```
 
-### 2.3 Evidence
+## 2.3 Evidence
 ```yaml
 Evidence:
   id: string
   project_id: string|null
+  campaign_id: string|null
+  stage_id: string|null
   opportunity_id: string|null
   source_id: string
   source_event_id: string|null
@@ -120,41 +157,95 @@ Evidence:
   valid_until: datetime_utc|null
   supersedes_evidence_id: string|null
 ```
-Evidence is append-only. Corrections create new Evidence; prior evidence is never silently overwritten.
 
-### 2.4 Opportunity
+Evidence is append-only. Corrections append new Evidence and retain prior history.
+
+## 2.4 AssetAmount
+```yaml
+AssetAmount:
+  amount: decimal
+  asset_kind: NATIVE|ERC20|OTHER
+  chain_key: string
+  token_address: string|null
+  symbol: string|null
+  decimals: integer|null
+  usd_estimate: decimal|null
+  usd_estimate_at: datetime_utc|null
+```
+
+USD estimate is contextual evidence, not canonical payment amount.
+
+## 2.5 MintCampaign
+```yaml
+MintCampaign:
+  id: string
+  project_id: string
+  chain_key: string
+  contract_address: string|null
+  supply: integer|null
+  source_campaign_id: string|null
+  state: DISCOVERED|SCHEDULED|ACTIVE|ENDED|CANCELLED|UNKNOWN
+  created_at: datetime_utc
+  updated_at: datetime_utc
+```
+
+## 2.6 MintStage
+```yaml
+MintStage:
+  id: string
+  campaign_id: string
+  label: string|null
+  stage_type: ALLOWLIST|HOLDER|COMMUNITY|FCFS|RAFFLE|PUBLIC|TEAM|OTHER
+  allocation_type: FCFS|RAFFLE|GUARANTEED|HOLDER|PUBLIC|UNKNOWN
+  state: PENDING|OPEN|CLOSED|CANCELLED|UNKNOWN
+  open_at: datetime_utc|null
+  close_at: datetime_utc|null
+  price_state: FREE|KNOWN|UNKNOWN|VARIABLE
+  price: AssetAmount|null
+  max_per_wallet: integer|null
+  eligibility_ref: string|null
+  official_action_url: VerifiedLink|null
+  evidence_ids: [string]
+  evidence_confidence: LOW|MEDIUM|HIGH
+```
+
+Rules:
+- FREE is explicitly sourced, never inferred from missing price;
+- UNKNOWN is not numeric zero;
+- stage-specific time/price/max values never get collapsed to campaign-wide values when they differ.
+
+## 2.7 Opportunity
+`Opportunity` is the action/prioritization object, not the container for every mint-stage fact.
+
 ```yaml
 Opportunity:
   id: string
   project_id: string
-  type: ALLOWLIST|RAFFLE|HOLDER_MINT|FREE_MINT|PAID_MINT|PUBLIC_MINT|AIRDROP|OTHER
+  type: ALLOWLIST|RAFFLE|HOLDER_MINT|FREE_MINT|PAID_MINT|PUBLIC_MINT|AIRDROP|LEGACY_HOLDER_ACCESS|OTHER
   state: string
-  chain: string|null
-  contract_address: string|null
+  campaign_id: string|null
+  stage_id: string|null
   registration_open_at: datetime_utc|null
   registration_close_at: datetime_utc|null
   snapshot_at: datetime_utc|null
   results_at: datetime_utc|null
-  mint_open_at: datetime_utc|null
-  mint_close_at: datetime_utc|null
-  mint_price_native: decimal|null
-  max_per_wallet: integer|null
-  supply: integer|null
-  allocation_type: FCFS|RAFFLE|GUARANTEED|HOLDER|PUBLIC|UNKNOWN
   official_action_url: VerifiedLink|null
   evidence_ids: [string]
   evidence_confidence: LOW|MEDIUM|HIGH
   updated_at: datetime_utc
 ```
 
-### 2.5 Quest
-Defined now so Phase 2 does not force a domain rewrite.
+Mint-stage open/close/price/max-per-wallet live in `MintStage`; do not duplicate them into Opportunity.
+
+## 2.8 Quest
 ```yaml
 Quest:
   id: string
   opportunity_id: string
+  campaign_id: string|null
+  stage_id: string|null
   action_type: FOLLOW_X|LIKE_X|REPOST_X|COMMENT_X|TAG_FRIEND|JOIN_DISCORD|DISCORD_ROLE|DISCORD_LEVEL|GALXE|GUILD|PREMINT_REGISTER|HOLD_NFT|HOLD_TOKEN|ONCHAIN_ACTION|REFERRAL|CUSTOM
-  required: boolean
+  required: boolean|null
   execution_mode: MANUAL|EXTERNAL_PLATFORM|READ_ONLY_VERIFY
   target: string|null
   quantity_or_threshold: string|null
@@ -163,19 +254,22 @@ Quest:
   safety_class: SAFE_MANUAL|WALLET_SIGNATURE_REQUIRED|SOCIAL_ACTION|DISCORD_ACTIVITY|UNKNOWN
 ```
 
-### 2.6 UserProgress
+## 2.9 UserProgress
 ```yaml
 UserProgress:
   user_key: string
   opportunity_id: string
   quest_id: string|null
   state: UNKNOWN|TODO|IN_PROGRESS|COMPLETED|VERIFIED|WON|WAITLISTED|LOST|EXPIRED|SKIPPED
+  provenance: USER_CONFIRMED|PROVIDER_VERIFIED|SYSTEM_OBSERVED|UNKNOWN
   observed_at: datetime_utc
   verification_source_id: string|null
   note: string|null
 ```
 
-### 2.7 WalletEntity
+Recommendation/planned work never auto-promotes to COMPLETED.
+
+## 2.10 WalletEntity
 ```yaml
 WalletEntity:
   id: string
@@ -190,7 +284,7 @@ WalletEntity:
   last_seen_at: datetime_utc|null
 ```
 
-### 2.8 InfluencerEntity
+## 2.11 InfluencerEntity
 ```yaml
 InfluencerEntity:
   id: string
@@ -204,14 +298,16 @@ InfluencerEntity:
   last_active_at: datetime_utc|null
 ```
 
-### 2.9 Notification
+## 2.12 Notification
 ```yaml
 Notification:
   id: string
   fingerprint: string
   project_id: string
+  campaign_id: string|null
+  stage_id: string|null
   opportunity_id: string|null
-  class: DISCOVERY|WL_OPEN|DEADLINE|COHORT_HIT|CONTRACT_LINKED|RISK_DOWNGRADE|WL_RESULT|MINT_RECHECK
+  class: DISCOVERY|WL_OPEN|DEADLINE|COHORT_HIT|CONTRACT_LINKED|RISK_DOWNGRADE|WL_RESULT|MINT_RECHECK|REACTIVATION
   severity: INFO|WATCH|ACTION|URGENT|WARNING
   action: WATCH|APPLY_WL|PREPARE|MINT_RECHECK|AVOID|NO_ALERT
   material_change_keys: [string]
@@ -219,7 +315,7 @@ Notification:
   sent_at: datetime_utc|null
 ```
 
-### 2.10 VerifiedLink
+## 2.13 VerifiedLink
 ```yaml
 VerifiedLink:
   url: string
@@ -230,29 +326,50 @@ VerifiedLink:
   checked_at: datetime_utc
 ```
 
-## 3. Project identity and merge/split rules
+`VerifiedLink.verification_state` describes identity/relation evidence. Wallet-impacting action safety is separate.
 
-### Merge only when at least one strong relation exists
-- same officially linked contract/deployer; or
-- official site explicitly links both identities; or
-- official T1 account announces rebrand/migration and links both identities.
+## 2.14 ActionLinkAssessment
+```yaml
+ActionLinkAssessment:
+  url: string
+  safety_state: UNVERIFIED|CONSISTENT|QUARANTINED|REVOKED
+  checked_at: datetime_utc
+  project_id: string
+  campaign_id: string|null
+  stage_id: string|null
+  contract_address: string|null
+  evidence_ids: [string]
+  reason: string|null
+```
 
-### Never merge solely because
-- names/logos are similar;
-- an influencer says they are related;
-- wallets overlap;
-- community chatter claims a rebrand.
+A T1 post does not automatically make a new CTA `CONSISTENT`.
 
-### Split when
-- official channels disavow a cloned/migrated identity;
-- contract ownership/team relation cannot be corroborated;
-- a compromised domain/account is detected.
+---
 
-Identity operations are auditable and keep prior aliases/evidence.
+# 3. Project identity and merge/split
 
-## 4. Event normalization
+Merge only with a strong relation such as:
+- same officially linked contract/deployer relation;
+- official site directly linking identities;
+- official rebrand/migration announcement linking old/new identity.
 
-### RawEvent envelope
+Never merge solely because:
+- names/logos resemble each other;
+- influencer/community claims relation;
+- wallet overlap exists.
+
+Split/quarantine when:
+- official channels disavow clone/migration;
+- team/contract relation cannot be corroborated;
+- compromised domain/account behavior is detected.
+
+Identity history/aliases/evidence remain auditable.
+
+---
+
+# 4. Event normalization
+
+## RawEvent
 ```yaml
 RawEvent:
   event_id: string
@@ -270,168 +387,199 @@ RawEvent:
   fetch_metadata: object
 ```
 
-### NormalizedEvent
+## NormalizedEvent
 ```yaml
 NormalizedEvent:
   id: string
   raw_event_ids: [string]
   project_candidate: string|null
-  event_type: PROJECT_SIGNAL|ALLOWLIST_ANNOUNCED|ALLOWLIST_OPENED|ALLOWLIST_CLOSED|QUEST_CHANGED|SNAPSHOT_ANNOUNCED|SNAPSHOT_PASSED|MINT_SCHEDULED|MINT_OPENED|MINT_ENDED|CONTRACT_DEPLOYED|CONTRACT_OFFICIALLY_LINKED|RISK_SIGNAL|WALLET_SIGNAL|SOCIAL_SIGNAL|CORRECTION|CANCELLATION|OTHER
+  event_type: PROJECT_SIGNAL|PROJECT_REACTIVATED|CHAIN_MIGRATION_ANNOUNCED|LEGACY_HOLDER_ACCESS_ANNOUNCED|ALLOWLIST_ANNOUNCED|ALLOWLIST_OPENED|ALLOWLIST_CLOSED|QUEST_CHANGED|SNAPSHOT_ANNOUNCED|SNAPSHOT_PASSED|MINT_SCHEDULED|MINT_OPENED|MINT_ENDED|CONTRACT_DEPLOYED|CONTRACT_OFFICIALLY_LINKED|RISK_SIGNAL|WALLET_SIGNAL|SOCIAL_SIGNAL|CORRECTION|CANCELLATION|OTHER
   claims: [NormalizedClaim]
   observed_at: datetime_utc
   source_time: datetime_utc|null
   confidence: LOW|MEDIUM|HIGH
 ```
 
-### Time semantics
-- `published_at/source_time`: timestamp asserted by the source.
-- `fetched_at/observed_at`: when our system observed it.
-- all stored UTC.
-- render KST for user-facing deadlines.
-- if source gives only a date/no timezone, confidence is downgraded and the alert must say timezone is unresolved.
+## Time semantics
+- source/published time = source assertion;
+- observed/fetched time = system observation;
+- store UTC, render KST;
+- date without timezone lowers confidence and must be shown unresolved.
 
-### Edit/delete handling
-- content hash change on same native id -> emit `CORRECTION` and append evidence.
-- source disappears -> retain prior evidence; mark source event `DELETED_OR_UNAVAILABLE`; do not infer revocation unless official correction/disavowal exists.
+## Edit/delete
+- same native id + new content hash -> CORRECTION + new Evidence;
+- disappeared source -> retain Evidence + mark unavailable; do not infer revocation without correction/disavowal.
 
-### Dedup
-Exact duplicate key:
+## Dedup
+Exact key when available:
 `source_id + source_native_id + content_hash`.
 
-Cross-source semantic dedup candidate:
-`project_id + event_type + normalized primary claim + time bucket`.
+Cross-source notification dedup candidate:
+`project_id + campaign_id + stage_id + event_type + primary_claim + time_bucket`.
 
-Semantic dedup may merge notifications but never deletes evidence.
+Evidence is never deleted by semantic dedup.
 
-## 5. Verification model
+---
 
-### Claim classes and minimum evidence
+# 5. Verification and CTA safety
 
-#### Mint/WL URL
-Must have one of:
-- T1 official site/account directly links it; or
-- T2 platform page is directly linked from T1; or
-- official marketplace T2 page plus project identity corroboration.
+## Discovery trust != action safety
+A source can be official yet currently compromised. Therefore:
+- source/project identity evidence;
+- claim verification;
+- wallet-impacting CTA safety;
 
-T3/T4 link is never a CTA.
+are separate checks.
 
-#### Contract address
-`OFFICIAL` only when T1/T2 official channel links address/marketplace page and T0 chain data confirms the address exists.
+## Mint/WL/action URL
+Identity/relation verification may use:
+- current T1 official site/account relation;
+- T2 campaign/marketplace page linked/corroborated to project;
+- current known official domain history.
 
-#### Date/deadline
-Actionable with one current T1 or T2 source unless conflict exists. If T1 and T2 conflict, state becomes `CONFLICTED` and no irreversible CTA is promoted until resolved.
+For wallet-impacting CTA (`APPLY_WL`, `MINT_RECHECK`, connect/mint/register URL):
+- require `ActionLinkAssessment.safety_state=CONSISTENT`;
+- unexpected host/contract changes -> QUARANTINED;
+- disavowed/malicious link -> REVOKED;
+- T3/T4 URL never becomes CTA by itself.
 
-#### Holder/snapshot eligibility
-Requires T1/T2 claim plus wallet/collection identity verification. Past snapshots must be represented explicitly; buying after a passed snapshot must not be recommended as eligibility.
+## Contract address
+`OFFICIAL` only when current official/corroborated project evidence links the contract/marketplace relation and T0 confirms the address exists on expected chain.
 
-### Confidence
-- HIGH: direct current T0/T1/T2 evidence with identity linkage and no conflict.
-- MEDIUM: corroborated but incomplete, or time/identity detail remains unresolved.
-- LOW: discovery-only signal, stale evidence, inferred relation, or unresolved conflict.
+## Date/deadline
+One current T1/T2 source can make a date actionable when no conflict exists.
+If current official sources conflict -> CONFLICTED; exact urgent CTA is suppressed until resolved.
 
-### Evidence freshness defaults
-- mint/WL URL: recheck before every ACTION/URGENT alert and again within 15 minutes of mint CTA.
-- mint/WL deadline: recheck within 60 minutes when D-1, within 15 minutes when under 2 hours.
-- contract address: recheck official linkage before `MINT_RECHECK`.
-- project identity links: 7-day soft TTL, immediate recheck on conflict/risk event.
+## Holder/snapshot
+Requires current T1/T2 eligibility claim + collection/identity relation.
+Past snapshot is explicit. Buying after snapshot is never assumed to qualify.
+
+## Confidence
+- HIGH: current T0/T1/T2 evidence, identity linked, no material conflict;
+- MEDIUM: corroborated but incomplete/time/identity detail unresolved;
+- LOW: discovery-only, stale, inferred, or conflicting.
+
+## Freshness defaults
+- action URL: recheck before every ACTION/URGENT and within 15 minutes of wallet-impacting CTA;
+- deadline: within 60m at D-1, within 15m under 2h;
+- contract linkage: recheck before MINT_RECHECK;
+- project identity links: 7-day soft TTL, immediate on risk/conflict;
 - wallet labels: 30-day soft TTL unless first-party mapping persists.
 
-## 6. Opportunity state machine
+---
 
-Canonical states:
-`RUMORED -> DISCOVERED -> REGISTRATION_PENDING -> REGISTRATION_OPEN -> REGISTRATION_CLOSED -> RESULTS_PENDING -> (WON|WAITLISTED|LOST) -> MINT_SCHEDULED -> MINT_OPEN -> ENDED`
+# 6. State models
 
-Alternative branches:
-- holder/direct mint: `DISCOVERED -> MINT_SCHEDULED -> MINT_OPEN -> ENDED`
-- cancellation: any pre-ended active state -> `CANCELLED`
-- correction: state remains but fields/evidence version update; if correction changes phase, transition through validated target state.
+## MintCampaign
+Typical:
+`DISCOVERED -> SCHEDULED -> ACTIVE -> ENDED`
+
+Any active/pre-ended -> CANCELLED with sufficient current evidence.
+
+## MintStage
+Typical:
+`PENDING -> OPEN -> CLOSED`
 
 Rules:
-- state may advance only with sufficient evidence for that transition.
-- backwards transition is not allowed except as `CORRECTION` with explicit official evidence.
-- `MINT_OPEN` never derives only from a clock; require current official/platform/on-chain confirmation.
-- `WON/WAITLISTED/LOST` is user-specific and belongs in UserProgress when wallet-specific; Opportunity stays at `RESULTS_PENDING/MINT_SCHEDULED` globally.
-- illegal transition -> `STATE_TRANSITION_REJECTED` error + evidence retained for review.
+- stage never becomes OPEN solely because local clock passed `open_at`; require current platform/official/on-chain evidence;
+- correction can update schedule/terms while retaining prior Evidence;
+- stage-specific fields stay stage-specific.
 
-## 7. Scoring model v1
-Scores are prioritization aids, not return predictions.
+## Opportunity
+Canonical action flow:
+`RUMORED -> DISCOVERED -> REGISTRATION_PENDING -> REGISTRATION_OPEN -> REGISTRATION_CLOSED -> RESULTS_PENDING -> MINT_SCHEDULED -> MINT_OPEN -> ENDED`
 
-### Quality 0–100
-- team/project provenance: 0–20
-- existing community/history: 0–20
-- product/art/cultural differentiation: 0–15
-- transparent mint mechanics: 0–15
-- organic demand evidence: 0–15
-- ecosystem/partner credibility: 0–10
-- execution history: 0–5
+Alternative holder/direct flows can skip registration states.
 
-### Alpha 0–100
-- lead time before public mint: 0–25
-- low public saturation / early-stage signal: 0–20
-- WL still obtainable: 0–20
-- early independent wallet cohort signal: 0–20
-- unique-source lead advantage: 0–15
+User-specific `WON|WAITLISTED|LOST` lives in UserProgress, not global Opportunity state.
 
-### Effort 0–100, lower is better
-- simple register/follow: +5 to +15
-- multiple social actions: +10 to +25
-- Discord role/level over days: +20 to +50
-- referral/invite dependency: +20 to +40
-- on-chain paid action: +20 to +50
-- uncertain/moderator-selected criteria: +20
+Illegal transition -> `STATE_TRANSITION_REJECTED` + evidence retained.
 
-### Risk 0–100, lower is better
-Penalties accumulate:
-- unverified official linkage +30
+---
+
+# 7. Scoring model v1
+Scores prioritize attention; they are not return forecasts.
+
+## Quality 0–100
+- team/project provenance 0–20
+- existing community/history 0–20
+- product/art/cultural differentiation 0–15
+- transparent mint mechanics 0–15
+- organic demand evidence 0–15
+- ecosystem/partner credibility 0–10
+- execution history 0–5
+
+## Alpha 0–100
+- lead time before public mint 0–25
+- low saturation/early signal 0–20
+- WL still obtainable 0–20
+- independent wallet cohort 0–20
+- unique-source lead advantage 0–15
+
+## Effort 0–100 — lower better
+- simple register/follow +5..15
+- multiple social actions +10..25
+- Discord role/level over days +20..50
+- referral dependency +20..40
+- paid on-chain action +20..50
+- uncertain/mod-selected criteria +20
+
+## Risk 0–100 — lower better
+Typical penalties:
+- unverified official relation +30
 - contract/site mismatch +40
 - suspicious domain/homograph +40
+- CTA QUARANTINED +40 minimum and action suppression
 - conflicting official instructions +25
-- anonymous/new team without history +10
-- concentrated supply/team allocation concern +10 to +25
-- wash/sybil-like activity +10 to +30
-- promotion/shill conflict +5 to +20
-- high mint price relative to evidence +5 to +20
-- wallet-drainer/signature anomaly signal +100 hard block
+- anonymous/new team no history +10
+- concentrated supply/team allocation +10..25
+- wash/sybil-like activity +10..30
+- promotion/shill conflict +5..20
+- high stage price relative to evidence +5..20
+- wallet-drainer/signature anomaly +100 hard block
 
-### Evidence adjustment
-- HIGH: x1.00
-- MEDIUM: x0.85
-- LOW: cannot exceed B/action WATCH regardless of raw score.
+## Evidence adjustment
+- HIGH x1.00
+- MEDIUM x0.85
+- LOW cannot exceed WATCH/B behavior regardless of raw score
 
-### Wallet cohort adjustment
-- one famous wallet: +0 to +3 Alpha only
-- 2 independent validated alpha wallets: +3 to +7 Alpha
-- 3+ independent high-score wallets: +5 to +15 Alpha
-- correlated/funded/sybil cluster: no bonus and may add Risk
+## Wallet cohort
+- one famous wallet: +0..3 Alpha only
+- 2 independent validated alpha wallets: +3..7 Alpha
+- 3+ independent high-score wallets: +5..15 Alpha
+- correlated/sybil cluster: no bonus; may add Risk
 
-### Influencer cap
-Influencer/social mention may contribute at most +5 Alpha and 0 Quality unless independently supported by other evidence.
+## Influencer cap
+Social/influencer mention: max +5 Alpha, +0 Quality unless supported independently.
 
-### Action score
+## Action score
 ```text
 base = 0.35*Quality + 0.35*Alpha + 0.20*(100-Risk) + 0.10*(100-Effort)
 action_score = base * evidence_multiplier
 ```
+
 Hard gates override score:
-- suspicious/unverified CTA link -> no APPLY/MINT action
-- Risk >= 70 -> AVOID or WATCH only
-- LOW evidence -> WATCH only
+- CTA not CONSISTENT -> no wallet-impacting APPLY/MINT CTA;
+- Risk >=70 -> AVOID/WATCH only;
+- LOW evidence -> WATCH only.
 
-### Grades
-- S: >= 88 and HIGH evidence and Risk < 30
-- A: >= 78 and evidence >= MEDIUM and Risk < 45
-- B: 65–77
-- C: 50–64
-- D/AVOID: <50 or hard-risk gate
+Grades:
+- S >=88 + HIGH evidence + Risk<30
+- A >=78 + evidence>=MEDIUM + Risk<45
+- B 65–77
+- C 50–64
+- D/AVOID <50 or hard block
 
-Calibration rule: weights/thresholds are provisional until fixture regression + historical backtest. Any material change requires an ADR or scoring-version bump.
+Weights are provisional until fixture regression/historical calibration. Material changes require version bump/ADR.
 
-## 8. Dune / wallet intelligence design
+---
 
-### Seed wallet policy
-A public wallet can be seeded only if address identity is first-party or strongly corroborated and stored with confidence evidence. Named wallets are discovery seeds, not endorsements.
+# 8. Wallet / Dune intelligence
 
-### AlphaWalletScore v1 concept
+## Seed policy
+Public wallet seed only with first-party/strongly corroborated mapping. Named collector wallets are discovery seeds, not endorsements.
+
+## AlphaWalletScore concept
 ```text
 35% repeated early-entry percentile on later-successful collections
 20% independent project diversity
@@ -440,187 +588,229 @@ A public wallet can be seeded only if address identity is first-party or strongl
 15% recency
 minus wash/sybil/conflict penalties
 ```
-Do not compute a production score until historical benchmark definitions are fixed through the Dune spike.
 
-### Cohort independence
-Two wallets are not independent when strong evidence indicates:
+Do not productionize until benchmark definitions/spike validation are fixed.
+
+## Independence
+Not independent with strong evidence of:
 - common funder at short distance;
-- repeated direct transfers among them;
-- same deployer/team-controlled cluster;
-- synchronized high-frequency patterns suggesting automation/sybil.
+- repeated direct transfers;
+- team/deployer-controlled cluster;
+- synchronized sybil/automation patterns.
 
-### Dune use pattern
-Prefer cached/latest result retrieval for frequent reads; trigger fresh executions only at planned refresh windows. Result filtering/column selection should minimize transferred rows/credits.
+Factory/deployer infrastructure must not be mistaken for project team attribution without corroboration.
 
-Fallback: Dune unavailable -> wallet cohort features become `UNKNOWN`; core discovery/verification continues.
+## Backtest safety
+Avoid survivorship/look-ahead bias:
+- benchmark cohort must be defined without using future success labels inside the entry-time features;
+- keep training/calibration and evaluation periods separate when production calibration starts.
 
-## 9. Phase 2 WL/Quest contract
+## Dune use
+Cached/latest results preferred for frequent reads; fresh execution at bounded refresh windows. Core pipeline continues when Dune unavailable.
 
-### Allocation representation
-- FCFS: speed-sensitive, capacity required when known.
-- RAFFLE: deadline/result time + winner count/odds proxy when known.
-- GUARANTEED: eligibility conditions must be explicit.
-- HOLDER: collection/token and snapshot semantics required.
+---
 
-### Mandatory vs optional
-Every parsed task includes `required`. Ambiguous language produces `required=null/UNKNOWN` in parser output and blocks `all_requirements_complete` claims.
+# 9. Phase 2 WL / Quest / progress
 
-### Manual-only execution
-Social actions, CAPTCHA, wallet connection/signing, Discord chat/activity, invite/referral actions are always user-performed. The system may deep-link and remind only.
+## Allocation semantics
+- FCFS: speed-sensitive;
+- RAFFLE: deadline/results/winner count when known;
+- GUARANTEED: explicit eligibility required;
+- HOLDER: collection/token + snapshot semantics;
+- PUBLIC: no allowlist eligibility assumption.
 
-## 10. Notification design
+## Mandatory vs optional
+`required` can be null/unknown if source wording is ambiguous. Unknown blocks `all_requirements_complete`.
 
-### Severity
-- INFO: non-actionable context; normally batched/suppressed.
-- WATCH: promising candidate, no immediate task.
-- ACTION: user should perform a reversible/manual step such as WL registration.
-- URGENT: deadline/mint recheck within configured urgency window.
-- WARNING: material risk/correction/cancellation.
+## Manual execution
+Social actions, CAPTCHA, wallet connection/signing, Discord activity, invites/referrals are user-performed only.
 
-### Alert triggers
-- first S/A candidate crossing confidence gate
-- WL/quest becomes open
-- material requirement/deadline change
-- validated wallet cohort raises Alpha across threshold
-- official contract linkage appears
-- risk worsens by >=15 points or crosses 45/70 thresholds
-- user-specific WL result becomes known
-- mint window enters final recheck period
+## Progress provenance
+UserProgress must distinguish:
+- user-confirmed;
+- provider-verified;
+- system-observed;
+- unknown.
 
-### No-alert policy
-No notification for:
-- repeated same evidence
-- T3/T4 rumor without corroboration
-- score change <5 with no state/action change
-- routine source-health changes unless coverage becomes critically blind
+A reminder/recommendation never counts as completion.
 
-### Fingerprint
-`project_id | opportunity_id | notification_class | normalized_action | deadline_bucket | material_version`
+---
 
-### Material re-alert
-Re-alert when any of:
-- state changes
-- deadline moves >=15 minutes when under D-1, or >=2 hours otherwise
-- price/supply/max-per-wallet changes
-- official action URL/contract changes
-- risk +/-15 or threshold crossing
-- allocation type/required quest set changes
+# 10. Notification design
 
-### Telegram payload fields
-1. grade + alert class
-2. project/opportunity
-3. current state
-4. deadline KST
-5. next action
-6. Quality/Alpha/Effort/Risk
-7. evidence confidence
-8. top 2–4 reasons
-9. risk flags
-10. verified official CTA if allowed
+## Severity
+- INFO
+- WATCH
+- ACTION
+- URGENT
+- WARNING
 
-Telegram text payload must remain <= 4096 characters; longer detail is summarized with links to evidence/dashboard.
+## Alert triggers
+- first S/A candidate crossing evidence gate;
+- WL/quest opens;
+- material requirement/deadline/stage change;
+- validated wallet cohort crosses threshold;
+- official contract relation appears;
+- risk worsens >=15 or crosses hard threshold;
+- user-specific WL result;
+- mint window enters final recheck;
+- legacy project reactivation / chain migration / holder-access signal when actionable/important.
 
-## 11. Persistence/runtime design
+## No-alert
+Suppress:
+- repeated same evidence;
+- T3/T4 rumor without corroboration;
+- score delta <5 without action/state change;
+- routine source-health noise unless coverage becomes critically blind.
 
-### Storage choice
-Phase 1 default: PostgreSQL-compatible relational database for Projects, Sources, Evidence, Opportunities, Notifications, progress/state; JSONB allowed for source-specific raw metadata.
+## Fingerprint
+`project_id | campaign_id | stage_id | opportunity_id | notification_class | normalized_action | deadline_bucket | material_version`
 
-Rationale:
-- explicit state transitions and constraints
-- evidence audit/history
-- idempotency and unique indexes
-- future analytics without premature event-stream infrastructure
+## Material re-alert
+Re-alert on:
+- state change;
+- deadline move >=15m under D-1 or >=2h otherwise;
+- stage price/supply/max changes;
+- action URL/contract change;
+- CTA safety change;
+- risk +/-15 or threshold crossing;
+- allocation/required quest change.
 
-Local/dev: SQLite may implement the same repository interfaces for fixtures/dry runs, but production semantics are PostgreSQL.
+## Telegram payload
+When known:
+1. grade/alert class
+2. project
+3. campaign/stage
+4. current state
+5. KST deadline
+6. next user action
+7. Quality/Alpha/Effort/Risk
+8. evidence confidence
+9. top reasons
+10. risk flags
+11. only CONSISTENT wallet-impacting CTA
 
-### Raw evidence retention
-Store normalized metadata + hashes/references by default. Do not indiscriminately archive copyrighted/full social content. Retain only what is permitted/needed for audit and fixture use.
+Telegram text <=4096 chars; longer evidence stays in referenced detail/dashboard.
 
-### Scheduler/worker
-- source adapters expose `poll(cursor)` or event-consumer interface.
-- central scheduler selects due adapters based on per-source cadence/health.
-- normalization/verification/scoring are idempotent workers.
-- notification outbox pattern sends Telegram after transaction commit.
+---
 
-### Idempotency
-Unique constraints on `(source_id, source_native_id, content_hash)` where available; deterministic fallback hash for page-based sources.
+# 11. Persistence and runtime
 
-### Retry/backoff
-- transient 5xx/network: exponential backoff + jitter, capped retries.
-- 429: honor reset/retry headers; source enters DEGRADED.
-- 401/403: no blind retry loop; mark AUTH_REQUIRED/PERMISSION_REQUIRED.
-- schema parse error: quarantine raw event; no user alert.
+## Storage
+Production: PostgreSQL for Project, Source, Evidence, MintCampaign, MintStage, Opportunity, Notification, UserProgress and audit state; JSONB only for source-specific raw metadata where appropriate.
 
-### Source degradation
-One source failure must not stop pipeline. Candidate confidence reflects missing verification source. Critical T1/T2 blind spot may suppress action alerts rather than fail open.
+Local fixture/dry-run may use SQLite behind same repository interfaces.
 
-### Cost budget
-Every adapter records requests, returned records, estimated/actual cost when available. Hard daily/monthly budget caps are configurable. Paid source hitting budget -> DEGRADED, not surprise overspend.
+## Raw evidence
+Store normalized metadata + hashes/refs by default; do not indiscriminately archive full copyrighted/social content.
 
-## 12. Security design
+## Deterministic-first pipeline
+```text
+Source adapters
+ -> normalization
+ -> evidence/verification rules
+ -> campaign/stage state
+ -> scoring formula/hard gates
+ -> decision rules
+ -> transactional outbox
+ -> Telegram renderer/sender
+```
 
-### Secret inventory
+No central LLM selects among these services.
+
+Conditional model-driven nodes are defined/audited in `LOCAL_ACTION_SPACE_AUDIT.md`.
+
+## Idempotency
+Unique `(source_id, source_native_id, content_hash)` where possible; deterministic fallback hash for page-like sources.
+
+## Retry/backoff
+- transient network/5xx: exponential backoff+jitter with cap;
+- 429: honor retry/reset; source -> DEGRADED;
+- 401/403: no blind loop; AUTH/PERMISSION state;
+- parse failure: quarantine event; no user alert.
+
+## Degradation
+One source failure must not stop the whole pipeline. Missing critical verification can suppress ACTION rather than fail open.
+
+## Cost
+Per-adapter request/record/actual-estimated cost accounting. Hard daily/monthly caps are configuration/runtime guarantees. Budget hit -> DEGRADED, not surprise overspend.
+
+---
+
+# 12. Security
+
+## Secrets
+Examples:
 - TELEGRAM_BOT_TOKEN
-- TELEGRAM_CHAT_ID (not secret like token but configuration)
-- X credentials/API project keys
+- TELEGRAM_CHAT_ID config
+- X credentials
 - DUNE_API_KEY
 - GALXE_ACCESS_TOKEN
 - OPENSEA_API_KEY
 - optional PREMINT/Guild/Discord credentials
 - RPC/indexer keys
 
-All secrets via environment/GitHub Secrets/secret manager. Never persist in evidence/log payloads.
+Secrets only through runtime/environment/GitHub Secrets/secret manager; never evidence/logs.
 
-### Link safety gate
-Before CTA:
-1. normalize URL and punycode host;
-2. reject unsupported schemes/userinfo/obvious redirect abuse;
-3. compare host/path relation to verified official evidence;
-4. re-resolve current official link close to action time;
-5. label external platform clearly;
-6. if link changed unexpectedly, send WARNING and suppress CTA until reverification.
+## CTA safety gate
+Before wallet-impacting CTA:
+1. normalize URL/punycode host;
+2. reject bad scheme/userinfo/obvious redirect abuse;
+3. compare current host/path to verified project relations;
+4. cross-check current official site/platform/contract/on-chain consistency as required;
+5. classify ActionLinkAssessment;
+6. unexpected new host/contract -> QUARANTINED;
+7. only CONSISTENT may render as wallet-impacting CTA.
 
-### Financial/safety gate
-No feature may accept private key/seed/signature payloads. No transaction construction is required for Phase 1–4 user assistant scope even if third-party APIs expose such endpoints.
+## Financial boundary
+No feature accepts private key/seed/signature payload. No transaction construction is needed for product scope.
 
-## 13. Observability
+---
 
-Structured log fields:
-`timestamp, correlation_id, source_id, adapter, event_id, project_id, opportunity_id, stage, result, error_code, latency_ms, retry_count, records, cost_units, notification_id`.
+# 13. Observability
 
-Health indicators:
-- last successful fetch per source
-- detection latency
-- normalization error rate
-- verification conflict rate
-- duplicate suppression count
-- action alert precision feedback
-- Telegram delivery success
-- source cost/lead-time ROI
+Structured fields:
+`timestamp, correlation_id, source_id, adapter, event_id, project_id, campaign_id, stage_id, opportunity_id, pipeline_stage, result, error_code, latency_ms, retry_count, records, cost_units, notification_id`.
+
+Health:
+- last successful fetch/source;
+- detection latency;
+- normalize error rate;
+- verification conflicts;
+- CTA quarantine/revocation count;
+- duplicate suppression;
+- alert precision feedback;
+- Telegram delivery;
+- source cost/lead-time ROI.
 
 Manual controls:
-- disable source
-- disable project
-- suppress opportunity
-- revoke verified link
-- force recheck
-- mute notification class
+- disable source/project;
+- suppress opportunity/campaign/stage;
+- revoke link;
+- quarantine CTA;
+- force recheck;
+- mute notification class.
 
-## 14. Data retention
-- Evidence metadata: long-lived/auditable unless legal/source-policy requires deletion.
-- Raw fetched body: shortest practical TTL; default 30 days if permitted, otherwise hash/reference only.
-- Operational logs: default 30 days.
-- Notification history: 180 days minimum for dedup/regression analysis.
-- UserProgress: retained until user clears project/account data.
+---
 
-## 15. MVP technical choices to validate, not assume
-The following decisions are architecturally isolated behind adapters and therefore may change after spikes without domain redesign:
-- X stream vs recent-search/polling mix
-- PREMINT partner API vs permitted page/manual ingest
-- Guild access mechanism
-- Dune fresh-execute cadence
-- Discord announcement/role read feasibility
-- exact RPC/indexer provider
-- deployment scheduler: GitHub Actions vs long-running worker/serverless scheduler
+# 14. Retention
+- Evidence metadata: auditable/long-lived unless policy/legal requires removal.
+- Raw fetched body: shortest practical TTL; default 30d only when permitted, otherwise hash/reference.
+- Operational logs: default 30d.
+- Notification history: >=180d for dedup/regression.
+- UserProgress: until user clears relevant data.
 
-See `SPIKE_PLAN.md`.
+---
+
+# 15. Remaining technical decisions are spike-driven
+Architecturally isolated and not assumed:
+- X stream vs search/polling and cost;
+- OpenSea live coverage across Ethereum/Base/Robinhood;
+- PREMINT partner API vs permitted fallback;
+- Guild access mechanism;
+- Dune fresh execution cadence/cost;
+- Discord authorized announcement/role read feasibility;
+- exact RPC/indexer provider;
+- provider/runtime outbound behavior at deployment.
+
+See `SPIKE_PLAN.md` and current `PROJECT_STATUS.md` for what still blocks Phase 1 coding.
