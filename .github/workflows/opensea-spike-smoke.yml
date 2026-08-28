@@ -9,6 +9,7 @@ on:
 permissions:
   contents: read
 
+# smoke contract v2: require per-chain evidence plus stratified detail sample
 jobs:
   probe:
     runs-on: ubuntu-latest
