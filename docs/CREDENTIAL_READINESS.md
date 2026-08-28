@@ -1,79 +1,113 @@
 # Credential Readiness
 
 ## Purpose
-List the minimum external credentials/configuration required to finish operational spike validation without committing secrets or starting production implementation.
+List the minimum external credentials/configuration still required to finish Phase 1 operational validation without committing secrets or starting production implementation.
 
-## Required before PHASE_1_CODING_READY
+## Current blocker count
+Only **two** Phase 1 provider validations still need user-owned credentials/access:
+1. Telegram
+2. X
 
-### X
+OpenSea provider feasibility is already operationally validated and no longer requires user setup.
+
+---
+
+## Telegram — required / lowest-friction next step
+
+### User must do only this
+1. Create a bot with `@BotFather`.
+2. Store the token as GitHub Actions/runtime secret named `TELEGRAM_BOT_TOKEN`.
+3. Open that bot in Telegram and send `/start` once.
+
+That is enough for the disposable spike in the normal clean-bot case.
+
+### `TELEGRAM_CHAT_ID`
+Optional for the spike.
+
+If absent, `spikes/telegram_probe.py` uses `getUpdates` to locate the latest private conversation after `/start`.
+
+Exception:
+- if the bot already has an active webhook, `getUpdates` cannot be used simultaneously; then configure `TELEGRAM_CHAT_ID` explicitly or use a clean test bot.
+
+### Required evidence
+- one Korean dry-run message arrives;
+- provider response/message id observed;
+- chat target matches;
+- token never appears in logs;
+- retry/dedup semantics recorded.
+
+No wallet connection or CTA is needed for the first delivery spike.
+
+---
+
+## X — required after Telegram
 Needed:
-- X developer app
-- Bearer token
-- current Developer Console endpoint pricing
-- explicit monthly spend cap
+- X Developer app/project access;
+- Bearer token as `X_BEARER_TOKEN`;
+- current Developer Console endpoint pricing/credits;
+- explicit acceptable test/monthly spend cap.
 
-Secret name proposal:
-- `X_BEARER_TOKEN`
+The manual workflow will not run X unless the user enters exactly:
 
-Do not commit screenshots or token values. Record only endpoint prices, test scope, observed latency and estimated monthly spend.
+`I_UNDERSTAND_X_MAY_COST`
 
-### Telegram
-Needed:
-- user-created bot token
-- user sends `/start` to the bot
-- target chat id resolved from bot update/runtime
-
-Secret name proposal:
-- `TELEGRAM_BOT_TOKEN`
-
-Config (non-secret) proposal:
-- `TELEGRAM_CHAT_ID`
+The first trial is intentionally bounded to a small recent-search result set. Do not widen watchlists or use a persistent stream until first observed cost/noise/utility is recorded.
 
 Required evidence:
-- one dry-run message delivered exactly once from the test path
-- provider message id/result recorded without token exposure
+- authenticated request succeeds;
+- useful/noise ratio on bounded NFT signal query;
+- latency;
+- current spend projection;
+- final operating mode: `STREAM_PRIMARY`, `SEARCH_PRIMARY`, `HYBRID`, or `X_OPTIONAL`.
 
-### OpenSea
-No user account is required for the documented instant free-tier key path, but live provider access must be tested from an environment that can resolve/reach `api.opensea.io`.
+Do not commit token values or screenshots containing credentials.
 
-For longer testing/production, secret name proposal:
-- `OPENSEA_API_KEY`
+---
 
-Required evidence:
-- upcoming Ethereum/Base response
-- at least 10 drop samples mapped to canonical Opportunity
-- stage fields: allowlist/public, price, start/end, max per wallet, supply
-- manual coverage comparison
+## OpenSea — CLOSED for Phase 1 feasibility
+No user setup is required for the completed spike.
 
-## Optional Phase 1 adapters
+Observed live on GitHub Actions:
+- instant free API key issuance succeeded;
+- `ethereum`, `base`, `robinhood` provider keys resolved;
+- per-chain API calls succeeded;
+- 10/10 detail sample succeeded;
+- multi-stage GTD/FCFS/holder/public/free structures observed;
+- `upcoming` coverage was proven incomplete, so OpenSea remains a structured source, not completeness authority.
+
+See `docs/spikes/SPIKE-MARKET-001-RESULT.md`.
+
+A full `OPENSEA_API_KEY` may later be configured for longer-lived production use, but it is not a current user-action blocker.
+
+---
+
+## Optional/later credentials
 
 ### Galxe
-Secret name proposal:
 - `GALXE_ACCESS_TOKEN`
-
-Galxe is not a hard blocker if the adapter remains optional and degrades to official/public references. A live token query should still be completed before enabling the Galxe adapter in production.
+- live query required only before enabling the adapter in production.
 
 ### PREMINT
-Partner/API access is optional. Do not block Phase 1 on PREMINT Connect approval.
+Partner/API access optional; do not block Phase 1 on approval.
 
 ### Guild
-Begin as public-reference/manual deep-link source until a supported read API contract is independently confirmed.
-
-## Later-phase credentials
+Begin as supported public-reference/manual deep-link path until a read API is independently validated.
 
 ### Dune — Phase 1.5
 - `DUNE_API_KEY`
 
-### Discord — Phase 3 only
+### Discord — Phase 3
 - `DISCORD_BOT_TOKEN`
-- server installation and required permissions/intents
+- server installation + required permissions/intents
 
-## GitHub integration limitation observed
-The currently connected GitHub integration can read/write repository contents but cannot list repository Actions secrets (`403 Resource not accessible by integration`). Therefore secret presence cannot be verified from this agent session and must not be guessed.
+---
+
+## GitHub integration limitation
+The connected GitHub integration cannot safely enumerate repository Actions secrets. Secret presence must remain `UNKNOWN` until the corresponding workflow actually proves the credential path.
 
 ## Safety rules
-- never paste secrets into repository files, issues, PRs or logs
-- never commit `.env`
-- redact provider responses that echo credentials
-- rotate any credential accidentally exposed
-- spike artifacts store only metadata/results, never token values
+- never paste secrets into repository files, issues, PRs or logs;
+- never commit `.env`;
+- redact provider responses that echo credentials;
+- rotate any credential accidentally exposed;
+- spike artifacts store only measurements/results, never token values.
