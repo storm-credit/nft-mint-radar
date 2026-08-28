@@ -1,154 +1,169 @@
 # Production Coding Start Gate
 
 ## Purpose
-This gate is the NFT Radar equivalent of a manuscript-start gate: production implementation begins only after the system design, harness, safety model, and architecture-changing provider uncertainties are sufficiently closed.
-
-The objective is not paperwork. The objective is to prevent unresolved provider, cost, safety, timing, or data-contract questions from being decided accidentally inside production code.
+Production implementation begins only after domain design, harness/safety rules, minimum-agency architecture, and architecture-changing provider uncertainties are sufficiently closed.
 
 ## Gate states
-- `DESIGNING` — P0 design decisions remain unresolved.
-- `SPIKE_REQUIRED` — design is coherent, but real provider evidence is still needed.
-- `FREEZE_PENDING` — required spikes passed; results still need reconciliation into canonical design/ADR/status.
-- `PHASE_1_CODING_READY` — Phase 1 production implementation may begin.
-- `CODING_BLOCKED` — a P0 failure, regression, or unresolved architectural ambiguity blocks implementation.
+- `DESIGNING`
+- `SPIKE_REQUIRED`
+- `FREEZE_PENDING`
+- `PHASE_1_CODING_READY`
+- `CODING_BLOCKED`
 
-## A. Current-state recovery
-Before evaluating this gate:
-- [ ] Read `CLAUDE.md`.
-- [ ] Read `docs/PROJECT_STATUS.md`.
-- [ ] Read `docs/DEEP_DESIGN.md`.
-- [ ] Read latest targeted blind-spot audit.
-- [ ] Read `docs/HARNESS_SPEC.md` and `docs/HARNESS_SCHEMAS.md`.
-- [ ] Read all relevant spike results and ADRs, including ADR-007/ADR-008.
-- [ ] Confirm that completed/frozen work is not being reopened without new P0 evidence.
+---
 
-## B. Deep Design completeness
+## A. Recovery
+Before evaluating:
+- [ ] read `CLAUDE.md`;
+- [ ] read `PROJECT_STATUS.md`;
+- [ ] read this gate;
+- [ ] read `DEEP_DESIGN.md` + relevant Accepted ADRs;
+- [ ] read `MINIMUM_ACTION_ADOPTION.md` / ADR-009;
+- [ ] read `HARNESS_SPEC.md`, `HARNESS_SCHEMAS.md`, `EVAL_FIXTURES.md`;
+- [ ] read relevant spike results;
+- [ ] confirm no completed design is being reopened without new P0 evidence.
+
+---
+
+## B. Deep Design
 - [x] Phase boundaries defined.
-- [x] Initial chain scope defined as Ethereum + Base + Robinhood Chain.
-- [x] Source trust and discovery-vs-verification policy defined.
-- [x] Source identity trust separated from CTA link safety.
-- [x] Canonical entity/data contracts defined.
-- [x] Asset-aware mint price semantics defined.
-- [x] Multi-stage MintCampaign/MintStage semantics defined.
-- [x] Legacy/reactivation/migration signal types defined.
-- [x] Opportunity/state semantics defined.
-- [x] Evidence conflict/version/staleness policy defined.
-- [x] Scoring model and safety gates defined.
-- [x] Wallet/influencer signal boundaries defined.
-- [x] Runtime/storage architecture selected.
-- [x] Retry/rate-limit/degradation/timezone/retention policies defined.
-- [x] Security/non-automation boundaries defined.
+- [x] Phase 1 chain scope = Ethereum + Base + Robinhood Chain.
+- [x] OpenSea role defined as structured but incomplete discovery.
+- [x] source trust != claim verification != CTA safety.
+- [x] AssetAmount / FREE|KNOWN|UNKNOWN|VARIABLE defined.
+- [x] MintCampaign / MintStage / Opportunity separation defined.
+- [x] legacy reactivation/migration/holder-access events defined.
+- [x] evidence version/conflict/stale semantics defined.
+- [x] campaign/stage/opportunity state semantics defined.
+- [x] Quality/Alpha/Effort/Risk + hard gates defined.
+- [x] wallet/influencer evidence boundaries defined.
+- [x] persistence/runtime/retry/rate-limit/cost/time/retention rules defined.
+- [x] no-wallet-action/no-self-bot/no-fake-engagement safety boundaries defined.
+- [x] `DEEP_DESIGN.md` canonical text synchronized to ADR-007/008/009.
 
-## C. Executable Harness design completeness
-- [x] H0–H8 harness stages defined.
-- [x] Agent responsibilities and forbidden actions defined.
-- [x] Typed logical I/O contracts defined.
-- [x] Prompt contracts and injection boundaries defined.
-- [x] Golden fixture families defined.
-- [x] Failure/stop/error taxonomy defined.
-- [x] Credential-free end-to-end design dry-run completed.
-- [x] ADR-008 fixture requirements recorded for multi-stage/ERC20/compromised-official-channel cases.
+---
 
-Note: production harness runner code does not need to exist before this design gate, but production feature coding must not begin until provider evidence below is closed.
+## C. Minimum-Action / Harness Design
+- [x] Minimum Necessary Agency adopted.
+- [x] logical role != autonomous agent.
+- [x] production hot path deterministic-first.
+- [x] Agent creation requires real context/tool/permission/evidence/failure/independent-judgment boundary.
+- [x] model-driven nodes use minimum context bundles.
+- [x] local action-space audit recorded: designed-node waivers = 0, current planned nodes PASS.
+- [x] independent critic input separated from builder rationale by default.
+- [x] H0–H9 harness stages defined.
+- [x] typed logical I/O v1.1 synchronized with current domain model.
+- [x] prompt contracts reduced to narrow model-driven nodes.
+- [x] current golden fixture families include multi-stage/ERC20/FREE/compromised-official/manual-progress/critic cases.
+- [x] failure/stop/error taxonomy defined.
+- [x] credential-free design dry-run exists.
 
-## D. Red Team / blind-spot gate
-- [x] Source coverage blind spots reviewed.
-- [x] Phase 1 chain coverage re-audited against actual user target pattern.
-- [x] Official-account-compromise CTA risk reviewed.
-- [x] Native-vs-ERC20 mint-price semantics reviewed.
-- [x] Multi-stage GTD/FCFS/community/public mint structure reviewed.
-- [x] OpenSea curation/completeness limitation reviewed.
-- [x] Factory-deployer attribution risk reviewed.
-- [x] Famous-wallet trap reviewed.
-- [x] Influencer/shill manipulation reviewed.
-- [x] Wash/sybil manipulation reviewed.
-- [x] Discord self-bot/social automation trap reviewed.
-- [x] Telegram phishing/noise trap reviewed.
-- [x] Stale/edit/delete announcement risk reviewed.
-- [x] Cost/rate-limit/provider-outage degradation reviewed.
-- [x] P0 design findings closed through ADR-007/ADR-008.
+Production harness runner code is not required before this design gate; production feature coding still waits for provider evidence below.
 
-## E. Operational spike gate — Phase 1 blocking
-These are architecture/cost/utility-sensitive and must be observed or explicitly waived by ADR.
+---
 
-### X
-- [ ] Real credential access succeeds.
-- [ ] Small search/stream trial completed.
-- [ ] Detection latency measured.
-- [ ] Delivered/noise volume measured.
-- [ ] Cost projection measured from current console/pricing.
-- [ ] Final mode frozen: `STREAM_PRIMARY`, `SEARCH_PRIMARY`, `HYBRID`, or `X_OPTIONAL`.
+## D. Red Team
+- [x] source coverage / OpenSea completeness limitation
+- [x] Robinhood Chain target-pattern gap
+- [x] official-account compromise / CTA substitution
+- [x] ERC-20 vs native price
+- [x] multi-stage GTD/FCFS/holder/community/public
+- [x] factory/deployer attribution
+- [x] famous-wallet / influencer / wash-sybil manipulation
+- [x] AlphaWallet look-ahead/survivorship risk
+- [x] Discord/self-bot/social automation
+- [x] Telegram phishing/noise
+- [x] stale/edit/delete announcement
+- [x] provider outage/cost/rate limit
+- [x] God Agent / Tool Swamp / Agent Explosion
+- [x] Shadow Authority / Stale Derived Artifact
+- [x] current P0 design findings closed by targeted PATCH, not redesign.
+
+---
+
+## E. Phase 1 Blocking Operational Spikes
 
 ### OpenSea
-- [ ] Live upcoming sample succeeds across **Ethereum + Base + Robinhood Chain**.
-- [ ] At least 10 real drops map to canonical MintCampaign/MintStage/Opportunity.
-- [ ] Multi-stage allowlist/public structure mapping verified on real samples.
-- [ ] Asset-aware pricing mapping verified, including non-native token pricing when present.
-- [ ] Required fields/coverage gaps documented.
-- [ ] Manual comparison against off-OpenSea discoveries completed; OpenSea completeness must not be assumed.
-- [ ] Failure/degradation behavior confirmed.
+- [ ] live upcoming/listed sample succeeds across target chains as available through provider API;
+- [ ] >=10 real drops map to Project/MintCampaign/MintStage/Opportunity;
+- [ ] real multi-stage allowlist/public mapping verified;
+- [ ] asset-aware price mapping verified, including non-native token if present;
+- [ ] coverage gap vs off-OpenSea discovery documented;
+- [ ] failure/degradation behavior confirmed.
 
 ### Telegram
-- [ ] Bot token available through secret/config path without disclosure.
-- [ ] User has started bot and chat target is known.
-- [ ] One real dry-run alert arrives exactly once under local outbox/dedup semantics.
-- [ ] Korean text and safe verified-link rendering verified.
-- [ ] Failure/retry result recorded.
+- [ ] bot token only through secret/runtime;
+- [ ] chat target established after user starts bot;
+- [ ] one real Korean dry-run arrives once under local dedup semantics;
+- [ ] safe CTA rendering checked;
+- [ ] failure/retry result recorded.
 
-## F. Non-blocking later-phase spikes
-These do not block Phase 1 unless architecture is later changed to depend on them.
-- [ ] Dune real freshness/credit test — Phase 1.5.
-- [ ] AlphaWallet benchmark tested out-of-sample to reduce survivorship/look-ahead bias — Phase 1.5.
-- [ ] Galxe live credential/query test — before production Galxe adapter enablement.
-- [ ] PREMINT partner access test — optional adapter.
-- [ ] Guild integration feasibility — optional adapter.
-- [ ] Discord authorized server-read test — Phase 3.
+### X
+- [ ] real credential access succeeds;
+- [ ] bounded search/stream trial completed;
+- [ ] latency measured;
+- [ ] delivered/useful/noise volume measured;
+- [ ] cost projection measured from current pricing/console;
+- [ ] final mode frozen: STREAM_PRIMARY / SEARCH_PRIMARY / HYBRID / X_OPTIONAL.
+
+---
+
+## F. Non-blocking later evidence
+- [ ] Dune freshness/credits + out-of-sample AlphaWallet validation — Phase 1.5.
+- [ ] Galxe live query before production adapter enablement.
+- [ ] PREMINT partner access if enabled.
+- [ ] Guild supported integration if enabled.
+- [ ] Discord authorized server read — Phase 3.
+- [ ] Railway outbound/runtime activation check before actual deployment.
+
+---
 
 ## G. Freeze reconciliation
-After all Phase 1 blocking spikes:
-- [ ] Spike results are saved as retained evidence.
-- [ ] Observed evidence is reconciled into canonical design/ADRs/status.
-- [ ] Any pre-ADR-007 chain assumptions are marked superseded.
-- [ ] Any pre-ADR-008 native-only/single-stage/T1-CTA assumptions are marked superseded.
-- [ ] No unresolved P0 provider ambiguity remains.
-- [ ] No downstream contract is silently stale.
-- [ ] Phase 1 source scope and runtime topology are frozen.
+After E passes or named items are explicitly waived:
+- [ ] save spike results;
+- [ ] reconcile observed provider evidence into canonical design/ADR/status;
+- [ ] update source modes/cost assumptions;
+- [ ] verify no derived schema/prompt/fixture/spike mapping is stale;
+- [ ] freeze Phase 1 source/runtime configuration;
+- [ ] confirm no unresolved P0 provider ambiguity.
+
+---
 
 ## H. Coding authorization
-Production Phase 1 coding may start only when every item in E and G is checked, or a named item has an explicit ADR waiver with rationale, risk, fallback, and revalidation trigger.
-
-When authorized, set authoritative status to:
+Only after E + G are complete (or explicit named ADR waiver) set:
 
 `PHASE_1_CODING_READY`
 
-Then implementation order is:
-1. canonical schemas/domain primitives including ChainIdentity, AssetAmount, MintCampaign and MintStage;
-2. evidence store + identity/verification/CTA-safety core;
+Implementation order:
+1. canonical domain primitives;
+2. evidence/identity/CTA-safety core;
 3. selected P0 source adapters;
-4. normalization/state machine;
-5. scoring/decision gates;
+4. normalization + campaign/stage/opportunity state;
+5. deterministic scoring/decision gates;
 6. transactional outbox;
-7. Telegram reporter;
+7. Telegram renderer/notifier;
 8. scheduler/worker integration;
-9. fixture/eval regression suite;
-10. end-to-end controlled dry run.
+9. fixture/eval runner;
+10. controlled end-to-end dry run.
+
+No central God Agent orchestration is introduced by default.
+
+---
 
 ## I. Regression rule
-If later evidence invalidates a frozen P0 assumption:
-1. mark affected design/contracts `STALE`;
-2. stop only the impacted production path;
-3. run targeted Red Team/spike;
-4. PATCH/CUT first;
-5. use NEW DESIGN only if architecture truly cannot absorb the evidence;
-6. re-enter this gate only for affected criteria.
+If later evidence invalidates frozen assumption:
+1. mark only affected authority/derived artifacts STALE;
+2. stop impacted path;
+3. targeted Red Team/spike;
+4. KEEP/PATCH/CUT first;
+5. NEW DESIGN only for true structural hole;
+6. re-enter only affected gate criteria.
 
-Do not reset the whole project for a local provider change.
+## Current verdict
 
-## Current gate verdict
+**`SPIKE_REQUIRED / PRODUCTION CODING BLOCKED`**
 
-`SPIKE_REQUIRED / PRODUCTION CODING BLOCKED`
-
-Blocking evidence remaining:
-1. X operational mode/cost;
-2. OpenSea live multi-chain/multi-stage sample and coverage;
-3. Telegram real delivery.
+Only Phase 1 blocking evidence remaining:
+1. OpenSea live multi-chain/multi-stage mapping/coverage;
+2. Telegram real delivery;
+3. X operational access/cost/mode.
