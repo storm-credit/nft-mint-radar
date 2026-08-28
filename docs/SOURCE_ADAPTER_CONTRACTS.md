@@ -1,7 +1,7 @@
 # Source Adapter Contracts
 
 ## Common adapter interface
-Every source adapter implements the logical contract below.
+Every source adapter emits source data only; no adapter decides the final user action.
 
 ```yaml
 SourceAdapter:
@@ -22,281 +22,141 @@ poll_or_receive:
     next_cursor: string|null
     provider_usage: ProviderUsage
     health: HEALTHY|DEGRADED|DISABLED
-
-ProviderUsage:
-  request_count: integer
-  returned_records: integer
-  rate_limit_remaining: integer|null
-  rate_limit_reset_at: datetime_utc|null
-  cost_units: number|null
-  cost_currency: string|null
-  actual_cost: number|null
 ```
 
-Hard adapter rules:
-- do not emit user-facing claims; only RawEvents/Evidence candidates;
-- preserve provider-native ids/cursors when available;
-- return explicit AUTH_REQUIRED/RATE_LIMITED rather than silently dropping data;
+Hard rules:
+- emit RawEvents/Evidence candidates, not user recommendations;
+- preserve provider ids/cursors;
+- explicit AUTH_REQUIRED/RATE_LIMITED/PROVIDER_DEGRADED;
 - never log secrets;
-- every paid adapter receives a configurable hard budget;
-- provider failure cannot stop unrelated adapters.
+- every paid adapter has a configurable hard budget;
+- failure of one adapter does not stop unrelated adapters;
+- adapters never construct/sign/submit transactions.
 
 ## XAdapter
+Role: P0 discovery + T1 identity/claim source when the account relation is verified.
 
-### Role
-P0 discovery + T1 verification when account identity is verified official.
-
-### Supported modes under consideration
-- filtered stream primary
+Modes under operational validation:
+- filtered stream
 - recent-search polling
-- hybrid stream + catch-up search
+- hybrid
 
-Final selection waits for `SPIKE-X-001`.
+Final mode waits for `SPIKE-X-001`.
 
-### Auth
-X API credentials through environment/secret manager.
-
-### Query policy
-Rules should favor:
-- verified watched project accounts;
-- narrow NFT/WL keywords;
-- account-specific rules over global broad keywords where cost/noise matters.
-
-### Native identity
-Post id is source_native_id. Edited/deleted handling records content/version evidence where provider data exposes it.
-
-### Error handling
-- 429 -> honor rate-limit reset; DEGRADED
-- billing/credit exhausted -> COST_BUDGET_EXCEEDED; DEGRADED/DISABLED
-- stream disconnect -> reconnect with bounded backoff; use catch-up mode if selected by ADR
-
-### Current design facts
-Filtered stream and recent search exist, but pricing is account/console dependent. Never hard-code an assumed per-post price.
+Use narrow project-account/keyword rules. A post from a verified official identity is not by itself proof that a newly introduced wallet-impacting CTA is safe.
 
 ## OfficialWebsiteAdapter
+Role: T1 identity/link/domain/schedule/contract/correction source.
 
-### Role
-T1 verification, official link/domain discovery, schedule/contract/correction evidence.
-
-### Ingest policy
-Only crawl pages that are:
-- already linked from verified project identity; or
-- discovered through a trusted marketplace/campaign platform and subsequently corroborated.
-
-### Fetch behavior
-- conditional HTTP requests where supported (ETag/Last-Modified)
-- canonical URL normalization
-- bounded page size/depth
-- content hash for edits
-
-### Safety
-Never automatically follow arbitrary redirects from T3/T4 into CTA trust. Redirect chain is evidence and requires host verification.
+Policy:
+- crawl only verified/corroborated project surfaces;
+- bounded depth/size;
+- conditional HTTP where possible;
+- content hash for edits;
+- arbitrary T3/T4 redirect chains never inherit CTA trust.
 
 ## OpenSeaAdapter
+Role: T2 structured listed-drop discovery and campaign/stage verification support.
 
-### Role
-T2 structured discovery/verification for drops and marketplace event context.
+Phase 1 chains:
+- Ethereum
+- Base
+- Robinhood Chain
 
-### Phase 1 endpoints
-- upcoming drops
-- drop detail/stages
-- collection/NFT/account events when needed for evidence
+Auth: `OPENSEA_API_KEY`.
 
-### Auth
-`OPENSEA_API_KEY`.
+Mapping:
+```text
+OpenSea drop -> Project candidate + MintCampaign candidate
+OpenSea stage -> MintStage
+stage allocation/time/price/max -> stage-specific fields
+relevant user action -> Opportunity referencing campaign/stage
+```
 
-### Mapping
-Upcoming drop -> Project candidate + Opportunity candidate.
-Drop stage fields -> allocation/mint price/start/end/max-per-wallet/supply where provided.
+Price mapping preserves FREE/KNOWN/UNKNOWN/VARIABLE and canonical payment asset (`NATIVE|ERC20|OTHER`).
 
-### Constraints
-OpenSea is not universal NFT coverage. Source ROI metrics decide whether another marketplace is added.
-
-### Excluded API usage
-Transaction-building/mint endpoints are out of scope even if provider exposes them.
+Constraints:
+- OpenSea calendar/listing is not complete market coverage;
+- absence is not negative evidence;
+- transaction-building/mint endpoints remain out of scope.
 
 ## GalxeAdapter
+Role: T2 quest/eligibility intelligence.
 
-### Role
-T2 structured quest/eligibility intelligence.
+Auth: `GALXE_ACCESS_TOKEN` when required.
 
-### Auth
-`GALXE_ACCESS_TOKEN` where required.
-
-### Phase 1/2 reads
-- quest details
-- quest status/start/end/cap/participants
-- credential groups/condition relations
-- wallet-specific eligibility only in later personal phase when the user explicitly configures an address
-
-### Mapping
-Quest -> Opportunity and/or Quest records.
-Condition relation ALL/ANY must be preserved; do not flatten it into an inaccurate simple list.
-
-### Cache
-Quest metadata soft cache 1–5 minutes near deadlines; longer when inactive, subject to rate-limit spike evidence.
-
-### Safety
-Claim/participation mutations are not part of the radar.
+Reads may include quest details, status, start/end/cap, credential groups and condition relations. ALL/ANY/X-of-Y semantics must not be flattened inaccurately. Claim/participation mutations are out of scope.
 
 ## PREMINTAdapter
+Role: T2 allowlist project/registration/list status where supported access exists.
 
-### Role
-T2 allowlist registration/list status when supported access exists.
+Preferred: PREMINT Connect partner API when approved.
+Fallback: verified official PREMINT reference + permitted public/manual ingest; no protected scraping/circumvention.
 
-### Preferred mode
-PREMINT Connect partner API if approved for this use case.
-
-### Supported metadata targets
-- project info
-- registration start/end
-- eligibility requirements
-- winner/waitlist/list status where user-specific functionality is later configured
-
-### Fallback
-If partner API access is unavailable:
-- store official PREMINT registration URL as verified T2 reference when linked from official project sources;
-- parse only content accessible through permitted public mechanisms;
-- no protected-page scraping/circumvention.
-
-### Mandatory status
-OPTIONAL until `SPIKE-CAMPAIGN-001` resolves access.
+Optional until access is operationally validated.
 
 ## GuildAdapter
+Role: T2 requirement/role intelligence when supported public/programmatic access is confirmed.
 
-### Role
-T2 requirement/role intelligence when a supported public/programmatic access path is confirmed.
-
-### Requirement model
-Must preserve:
-- ALL
-- ANY/meet 1
-- X of Y
-- negative/"should not satisfy" requirements
-- on-chain/social/Discord/time-based requirements
-
-### Fallback
-Official Guild page may be a verified external reference; if no stable supported data API is available, adapter stays PUBLIC_REFERENCE_ONLY.
+Must preserve ALL/ANY/X-of-Y/negative and on-chain/social/Discord/time requirements. Otherwise PUBLIC_REFERENCE_ONLY.
 
 ## OnChainAdapter
+Role: T0 contract/wallet/transaction evidence.
 
-### Role
-T0 objective contract/deployer/wallet evidence.
+Phase 1 EVM scope:
+- Ethereum
+- Base
+- Robinhood Chain
 
-### Initial chain scope
-Ethereum + Base (EVM).
+Provider is replaceable; core schema does not depend on provider-native types.
 
-### Required functions
-- contract existence/deployment block/time
-- transaction/log lookup
-- ERC721/ERC1155 mint/transfer evidence where standards permit
-- deployer/funder relation inputs
-- watched-wallet contract/NFT interactions
+Functions as supported by each provider/chain:
+- contract existence/deployment block/time;
+- transaction/log lookup;
+- ERC721/ERC1155 mint/transfer evidence where applicable;
+- factory/deployer/creator/admin/funder relation inputs;
+- watched-wallet interactions.
 
-### Provider strategy
-RPC/indexer provider is replaceable. Domain schema may not depend on provider-specific types.
-
-### Reorg/finality
-Store block number/hash for chain evidence. For very fresh events, mark confirmation status; recheck before irreversible/action-critical conclusions.
+Store block/hash for fresh evidence and represent confirmation/finality when relevant. A shared factory/deployer is not project creator identity by itself.
 
 ## DuneAdapter
+Role: optional analytics layer for wallet/cohort evidence.
 
-### Role
-T0/T3 analytics layer depending on query provenance: objective rows derived from chain data but analytical interpretation/query logic is treated separately.
+Prefer cached/latest saved-query results for frequent reads; fresh execution is bounded by `SPIKE-DUNE-001` cost/freshness results. Query version/execution timestamp/usage metadata are retained.
 
-### Preferred frequent-read mode
-Fetch latest saved-query results rather than executing fresh query every poll where freshness permits.
-
-### Fresh execution
-Scheduled/batched according to `SPIKE-DUNE-001` cost/freshness result.
-
-### Required usage metadata
-- query id/version
-- latest execution id
-- execution timestamp
-- execution cost credits when exposed
-- result row/byte counts
-
-### Result optimization
-Use server-side filtering/column selection/pagination to reduce result size and credit use.
-
-### Fallback
-Dune unavailable -> wallet cohort features UNKNOWN; no core outage.
+Unavailable Dune => cohort feature UNKNOWN; core radar continues.
 
 ## RedditAdapter
-
-### Role
-T4 discovery/sentiment only.
-
-### Policy
-Never creates direct ACTION/URGENT alert without corroboration. Useful signals become internal candidates/verification tasks.
+T4 discovery/sentiment only. Never creates direct ACTION/URGENT without corroboration.
 
 ## TelegramSourceAdapter
-
-### Role
-- official project announcement channel: potentially T1 after identity verification
-- public alpha group: T4
-
-### Policy
-Forwarded messages and links inherit no trust. Verify against source project identities.
-
-### Implementation gate
-Public/source access mechanism must be separately reviewed; notification bot credentials do not automatically grant arbitrary source-channel read access.
+Official project channel may become T1 only after identity relation verification. Public alpha group is T4. Forwarded content/links inherit no trust.
 
 ## TelegramNotifier
+P0 destination.
 
-### Role
-P0 destination, not a discovery source.
+Auth: `TELEGRAM_BOT_TOKEN`; target separately configured.
 
-### Auth
-`TELEGRAM_BOT_TOKEN`; target configured separately.
-
-### Operation
-`sendMessage` for MVP.
-
-### Payload
-<=4096 rendered characters. Message includes correlation/fingerprint only in logs, not necessarily visible.
-
-### Delivery semantics
-Use transactional outbox. Mark SENT only after successful provider response. Ambiguous timeout is reconciled conservatively to avoid notification storms.
+MVP uses Bot API sendMessage through transactional outbox. Renderer only receives a CTA already assessed `CONSISTENT`; notifier does not perform independent discovery/trust decisions.
 
 ## DiscordAdapter — Phase 3
+Server-opt-in only. Bot/app credentials, never user token. Use official REST/Gateway within installed permissions/intents. No automated user chat/activity.
 
-### Role
-Permitted T1 announcement read + user role/progress verification only in servers where app is installed/authorized.
+Fallback: official outside-channel requirements remain Quest evidence even without live Discord progress.
 
-### Auth
-Bot/app credentials only; never user token.
-
-### Access facts
-- Gateway/REST are official paths.
-- MESSAGE_CONTENT is privileged for message content.
-- GUILD_MEMBERS is privileged for broad member-related access.
-- server installation and permissions are prerequisites.
-
-### Product consequence
-Discord adapter is `SERVER_OPT_IN`; the product must not assume arbitrary NFT servers will install our bot.
-
-### Fallback
-Official website/X-disclosed Discord requirements remain Quest evidence even when live Discord progress cannot be read.
-
-## Adapter source-health policy
+## Source health
 
 ### HEALTHY
-Last expected fetch/stream heartbeat succeeded and data contract parsed.
+Expected fetch/heartbeat works and contract parses.
 
 ### DEGRADED
-- rate limited
-- cost budget near/exceeded
-- transient provider issues
-- stale cursor/backfill gap
-- partial permissions
+Rate limit, near/exceeded budget, transient provider issue, stale cursor/backfill gap, partial permission.
 
 ### DISABLED
-- credentials absent for optional adapter
-- access revoked
-- provider contract changed and parser quarantined
-- manual operator disabled source
+Optional credentials absent, access revoked, parser quarantined after provider drift, or operator disabled.
 
-### Critical blind-spot behavior
-If an ACTION alert requires a source currently unavailable for mandatory verification, fail closed: downgrade/suppress action and schedule recheck rather than infer.
+### Fail-closed rule
+If an ACTION requires currently unavailable mandatory verification/CTA evidence, suppress/downgrade action and schedule recheck rather than infer.
+
+## Minimum-action rule
+Adapter selection/cadence is deterministic scheduler configuration, not an LLM tool menu. Do not expose every adapter as peer callable to a central model.
