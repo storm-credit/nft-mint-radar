@@ -1,0 +1,30 @@
+name: OpenSea Spike Smoke
+
+on:
+  push:
+    paths:
+      - '.github/workflows/opensea-spike-smoke.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run credential-free OpenSea operational probe
+        run: |
+          python spikes/opensea_probe.py \
+            --chains 'ethereum,base,robinhood' \
+            --limit 30 \
+            --detail-limit 10 | tee opensea-spike-result.json
+      - name: Upload retained probe output
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: opensea-spike-result
+          path: opensea-spike-result.json
+          if-no-files-found: warn
