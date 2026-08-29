@@ -192,10 +192,13 @@ All Phase 1 blocking operational spikes are closed: OpenSea, Telegram (`SPIKE-TG
 real delivery observed), and X (`SPIKE-X-001` CLOSED, mode frozen in `ADR-010`). The cross-system
 Red Team ran on 2026-08-29 and closed every P0.
 
-Remaining before coding: freeze reconciliation only. See
-[`docs/PROJECT_STATUS.md`](docs/PROJECT_STATUS.md), which is the authority for current state.
+Freeze reconciliation completed on 2026-08-29
+([`docs/FREEZE_RECONCILIATION_2026-08-29.md`](docs/FREEZE_RECONCILIATION_2026-08-29.md)), and the
+Phase 1 source/runtime configuration is frozen in
+[`docs/PHASE_1_FROZEN_CONFIG.md`](docs/PHASE_1_FROZEN_CONFIG.md).
 
-Production feature coding starts only after the start gate is reconciled and set to `PHASE_1_CODING_READY`.
+See [`docs/PROJECT_STATUS.md`](docs/PROJECT_STATUS.md) — it is the authority for current state and
+for whether production coding is authorized.
 
 ## Important documents
 

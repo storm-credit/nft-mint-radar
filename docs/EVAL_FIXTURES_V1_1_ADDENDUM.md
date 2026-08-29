@@ -1,6 +1,21 @@
-# Eval Fixtures v1.1 Addendum
+# Eval Fixtures v1.1 Addendum — SUPERSEDED 2026-08-29
 
-These fixtures are mandatory before the executable harness runner can be considered frozen after ADR-007/ADR-008.
+**This file is historical. Do not implement from it.**
+
+`docs/EVAL_FIXTURES.md` is the single authority for fixture ids and content, and it now carries
+`F1`-`F40`.
+
+Why this file was retired: it defined `F21`-`F28` independently, and two of those ids had drifted to
+describe **different** fixtures than the canonical file. `F27` here was "Shared launchpad factory"
+while canonical `F27` is "User-confirmed manual quest progress"; `F28` here was "OpenSea absent but
+official mint exists" while canonical `F28` is "Independent critic weak-reading test". A runner
+reading both would have collided on ids or silently run the wrong assertions.
+
+The two fixtures that existed only here were moved into the canonical file as **`F39`** (shared
+launchpad factory) and **`F40`** (OpenSea absent but official mint exists). The remaining `F21`-`F26`
+entries were already covered canonically.
+
+The original text is kept below unchanged, as a record of what this addendum required.
 
 ## F21 — Multi-stage GTD / FCFS / Public
 Input: one verified drop with GTD, FCFS and Public stages, each with distinct limits and prices.
@@ -87,5 +102,6 @@ Expected:
 Forbidden:
 - suppressing candidate solely for missing OpenSea calendar entry.
 
-## Acceptance
-Runner freeze requires all F21–F28 to have expected normalized outputs and forbidden-output assertions.
+## Acceptance (historical)
+This file's original acceptance condition was that `F21`-`F28` have expected normalized outputs and
+forbidden-output assertions. That requirement now lives in `docs/EVAL_FIXTURES.md` over `F1`-`F40`.

@@ -4,7 +4,7 @@ Deep Design v1 is complete when every design item below is decided, documented, 
 
 ## A. Product and scope
 - [x] Primary user and primary job-to-be-done fixed. (`DEEP_DESIGN.md`)
-- [x] Phase 1 target chains fixed: Ethereum + Base.
+- [x] Phase 1 target chains fixed: Ethereum + Base + Robinhood Chain. (`ADR-007`; the original two-chain scope is superseded)
 - [x] Phase 1 target marketplace/launchpad scope fixed: OpenSea structured source first; others evidence-driven after spike.
 - [x] Phase 1 source list fixed and ranked P0/P1/P2. (`SOURCE_STRATEGY.md`, `SOURCE_ADAPTER_CONTRACTS.md`)
 - [x] Explicit non-goals fixed.

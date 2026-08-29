@@ -58,7 +58,7 @@ its constraints, execution order replaced with freeze reconciliation.
 - `F37` cursor never advances ahead of persisted evidence
 - `F38` X stream rule discipline: keyword-only rejected, author-scoped accepted
 
-Fixture count is now `F1`–`F38`.
+Fixture count is now `F1`-`F40` after the second pass; see below.
 
 ## Chain scope — re-confirmed, not reopened
 The question of BNB Chain and Solana was raised during reconciliation and answered with measurement
@@ -77,6 +77,23 @@ source that this same day's Red Team declared `NOT_READ_IN_PHASE_1`.
 **Decision: Phase 1 chain scope stays Ethereum + Base + Robinhood, per `ADR-007`.** The measurement is
 retained so the revalidation trigger in `ADR-007` — another chain repeatedly contributing missed
 S/A-grade opportunities — can be judged against production miss data instead of intuition.
+
+## Second confirmation pass — 5 blockers found and closed
+A final independent pass was run before authorizing coding, given the ten current facts and asked
+only whether anything should block `PHASE_1_CODING_READY`. It returned **BLOCKED** with five items.
+That pass earned its cost: three of the five were introduced by this same day's edits.
+
+| ID | Blocker | Close |
+|---|---|---|
+| `C1-001` | README and the start gate still said freeze reconciliation was remaining, while this record said it was complete | both updated to the completed state |
+| `C1-002` | `CREDENTIAL_READINESS` header said zero blockers while its X section still carried the Free-plan 403 and "remaining user action" | X section replaced with the Pay Per Use result; no user action remains |
+| `C1-003` | `DEEP_DESIGN_CHECKLIST` still fixed the chain scope at "Ethereum + Base" | corrected to Ethereum + Base + Robinhood, marking the two-chain scope superseded |
+| `C1-004` | `ADR-005` still said the hosting decision was blocked by unresolved X mode | status amended to record that `ADR-006` and `ADR-010` resolved it; the original line kept as history rather than rewritten |
+| `C2-001` | **Fixture id collision.** The v1.1 addendum defined `F27`/`F28` as different fixtures than the canonical file | addendum marked SUPERSEDED; its two unique fixtures moved to canonical `F39` and `F40` |
+
+`C2-001` was the dangerous one. A runner reading both files would have collided on ids or silently
+run the wrong assertions for `F27`/`F28`. Fixture ids are now single-authority in
+`docs/EVAL_FIXTURES.md`, `F1`-`F40`.
 
 ## Section G status
 - [x] OpenSea spike result saved and reconciled

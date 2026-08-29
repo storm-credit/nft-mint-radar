@@ -84,21 +84,20 @@ Bounded `both` mode:
 
 The stream leg refuses to run if the project already has Filtered Stream rules, preventing unrelated rules from creating additional test reads.
 
-### Current observed state
-`X_BEARER_TOKEN` is configured, but the credentialed bounded run `33255336140` on
-2026-08-29 returned **HTTP 403 `client-not-enrolled`** on both legs. Zero Posts were
-returned, actual Post-read cost **$0.00**, no stream rule created.
+### Final observed state — CLOSED
+`X_BEARER_TOKEN` is configured and the App is attached to the `NFT Mint Radar` **Pay Per Use**
+project. Run `33255955730` returned Recent Search HTTP 200 at 225.9 ms, and run `33256021263`
+delivered 10 Filtered Stream Posts in 16.9 s with a clean rule create/delete cycle. Total actual
+spend `$0.055` of a `$0.10` ceiling.
 
-Corrected cause: the App is attached to a Project, but that project is on the **Free** plan,
-which has no Post-read entitlement. **Free tier cannot be used for this product's X reads** —
-measured, not assumed. The account already has an unused `NFT Mint Radar` **Pay Per Use**
-project with 0 apps attached.
+One measured constraint is permanent and worth keeping visible: the **Free plan returns 403
+`client-not-enrolled` on both endpoints and cannot serve this product**. Run `33255336140` proved it
+at `$0.00`, because a rejected call returns no Posts.
 
-Remaining user action, if X is kept: attach an App to the Pay Per Use project, reissue its
-Bearer Token, update the `X_BEARER_TOKEN` secret, and rerun the bounded test.
-If X is dropped instead, ADR-002 already allows freezing it as `X_OPTIONAL`.
+**No user action remains.** If the token is ever rotated, update the secret and rerun the bounded
+spike; that is maintenance, not a blocker.
 
-See `docs/spikes/SPIKE-X-001-RESULT.md`.
+See `docs/spikes/SPIKE-X-001-RESULT.md` and `ADR-010`.
 
 ---
 

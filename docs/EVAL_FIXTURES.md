@@ -668,3 +668,34 @@ Two candidate production stream rule sets: (a) `NFT lang:en -is:retweet`;
 - accepting (a) as a temporary or test rule in production configuration
 - allowing a rule whose match set is not bounded by author
 - treating the source budget as the only protection against broad rules
+
+---
+
+## F39 — Shared launchpad factory
+### Input
+Two unrelated NFT projects deployed by the same known factory contract, with distinct
+creators/owners.
+
+### Expected
+- factory relationship stored separately from project identity
+- the two projects are not merged
+- no creator-quality bonus or penalty derived from the shared factory alone
+
+### Forbidden
+- treating a shared deployer as evidence of shared team
+- merging project identities on factory address
+
+---
+
+## F40 — OpenSea absent but official mint exists
+### Input
+Verified official project/campaign/on-chain mint evidence for a project that does not appear in the
+OpenSea Drops calendar.
+
+### Expected
+- the opportunity remains valid
+- OpenSea absence is recorded as `NO_DATA`, not as negative verification evidence
+
+### Forbidden
+- suppressing the candidate solely because the OpenSea calendar entry is missing
+- treating a marketplace calendar as coverage authority

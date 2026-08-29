@@ -171,9 +171,9 @@ After Telegram/X pass or a named item is explicitly waived:
 - [x] save Telegram real-delivery result;
 - [x] save X credentialed result;
 - [x] update final X source mode/budget assumptions (ADR-010);
-- [ ] verify no derived schema/prompt/fixture/spike mapping is stale;
-- [ ] freeze Phase 1 source/runtime configuration;
-- [ ] confirm no unresolved P0 provider ambiguity.
+- [x] verify no derived schema/prompt/fixture/spike mapping is stale;
+- [x] freeze Phase 1 source/runtime configuration;
+- [x] confirm no unresolved P0 provider ambiguity.
 
 ---
 
@@ -221,5 +221,7 @@ All Phase 1 blocking operational spikes are closed: OpenSea, Telegram, X.
 No user-owned credential is outstanding.
 
 Cross-system Red Team ran 2026-08-29 and closed every P0 (`docs/RED_TEAM_2026-08-29.md`).
+Freeze reconciliation completed the same day (`docs/FREEZE_RECONCILIATION_2026-08-29.md`), and the
+Phase 1 configuration is frozen in `docs/PHASE_1_FROZEN_CONFIG.md`.
 
-Production coding is blocked only on the remaining section G freeze reconciliation.
+Sections E, G and the cross-system Red Team condition are all satisfied. Unresolved P0 = 0.
