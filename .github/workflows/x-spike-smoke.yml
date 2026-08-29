@@ -1,0 +1,35 @@
+name: X Spike No-Cost Smoke
+
+on:
+  push:
+    paths:
+      - '.github/workflows/x-spike-smoke.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# This workflow never calls the X API. It only validates the disposable probe
+# syntax and records whether the Bearer Token secret is available to Actions.
+jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compile disposable X probe
+        run: python -m py_compile spikes/x_probe.py
+      - name: Check X credential presence without exposing value
+        env:
+          X_BEARER_TOKEN: ${{ secrets.X_BEARER_TOKEN }}
+        run: |
+          if [ -z "$X_BEARER_TOKEN" ]; then
+            echo '{"status":"BLOCKED_BY_CREDENTIAL","secret":"X_BEARER_TOKEN","paid_api_call_attempted":false}' | tee x-spike-preflight.json
+          else
+            echo '{"status":"READY_FOR_BOUNDED_PAID_SPIKE","secret":"X_BEARER_TOKEN","paid_api_call_attempted":false,"post_read_cost_ceiling_usd":0.10}' | tee x-spike-preflight.json
+          fi
+      - name: Upload retained preflight output
+        uses: actions/upload-artifact@v4
+        with:
+          name: x-spike-preflight
+          path: x-spike-preflight.json
