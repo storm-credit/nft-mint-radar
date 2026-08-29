@@ -145,8 +145,16 @@ Bounded credentialed test is ready:
 - existing stream rules => stream leg refuses to run;
 - paid call requires exact manual opt-in `I_UNDERSTAND_X_MAY_COST`.
 
+Credentialed bounded run attempted 2026-08-29 (run `33255336140`, opt-in supplied,
+rate rechecked at `$0.005/resource` immediately before execution):
+- both legs returned **HTTP 403 `client-not-enrolled`**;
+- the App holding the Bearer Token is not attached to a developer Project;
+- Posts returned: 0; actual Post-read cost: **$0.00**; ceiling breach: false;
+- no temporary stream rule was created, so no cleanup was pending;
+- this is an account-enrollment blocker, not a design, pricing, or token-validity blocker.
+
 Remaining evidence:
-- Bearer-token API access;
+- Bearer-token API access through a Project-attached App;
 - bounded useful/noise sample;
 - stream rule/connection lifecycle or precise access failure;
 - execution-time rate recheck;
@@ -158,13 +166,17 @@ Remaining evidence:
 
 ### 1. Telegram
 External user-owned prerequisite:
-- `TELEGRAM_BOT_TOKEN` + `/start`.
+- `TELEGRAM_BOT_TOKEN`: **PRESENT** since 2026-08-29; token authenticates and the bot
+  (`@nftmr_bot`) has no conflicting webhook;
+- **`/start` not yet sent** — `getUpdates` returned `update_count: 0`, so the probe found
+  no private chat and fail-closed without sending (runs `33254983732`, `33255307246`).
 
 ### 2. X
 External user-owned prerequisite:
-- developer Project/App;
-- enough API credit for bounded test;
-- `X_BEARER_TOKEN`.
+- `X_BEARER_TOKEN`: **PRESENT** since 2026-08-29;
+- **App must be attached to a developer Project** — current token returns
+  `client-not-enrolled` (403); this is the only known remaining X blocker;
+- enough API credit for the bounded test (not yet exercised; the 403 cost $0.00).
 
 No additional P0 design/code uncertainty is known before those credentials exist.
 

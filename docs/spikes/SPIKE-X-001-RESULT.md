@@ -106,6 +106,33 @@ This is not frozen until the bounded credentialed run succeeds.
 
 Repository secret enumeration on the same date returned zero configured Actions secrets and zero environments.
 
+## Credentialed bounded run attempt — 2026-08-29
+Manual Operational Spikes run `33255336140`, mode `both`, with the exact opt-in
+`I_UNDERSTAND_X_MAY_COST`. Public Post-read rate rechecked immediately before execution
+at `https://docs.x.com/x-api/getting-started/pricing`: still `$0.005/resource`, so the
+`$0.10` ceiling was unchanged. (Same page now states a 3,000,000 Post-read monthly
+pay-per-use cap; the earlier recorded figure of 2,000,000 is superseded.)
+
+Observed:
+- Recent Search leg: **HTTP 403**, `reason: client-not-enrolled`, latency 86.4 ms;
+- Filtered Stream leg: **HTTP 403** at the `list_rules` stage;
+- provider detail: the App supplying the Bearer Token is **not attached to a Project**;
+- Posts returned: **0**;
+- actual estimated Post-read cost: **$0.00**;
+- `post_read_cost_ceiling_exceeded`: false;
+- no temporary stream rule was created, because the run failed before rule creation,
+  so no cleanup was pending.
+
+Interpretation: this is an **account enrollment failure, not a token-validity, pricing,
+credit, or design failure**. The request was authenticated well enough for X to identify
+the client and reject it on enrollment grounds. The bounded-spend design behaved exactly
+as intended: a failed access attempt cost nothing.
+
+### Remaining user action
+Attach the App to a developer Project in the X developer portal (or create the App inside
+a Project and reissue its Bearer Token), then update the `X_BEARER_TOKEN` secret and rerun.
+No design change is required.
+
 ## Gate impact
 The old **pricing-definition ambiguity is closed**.
 
