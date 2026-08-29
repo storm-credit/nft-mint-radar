@@ -4,15 +4,15 @@
 List the minimum user-owned credentials/configuration still required to finish Phase 1 operational validation.
 
 ## Current blocker count
-Only **two** Phase 1 provider validations remain:
-1. Telegram real delivery
-2. X credentialed bounded trial
+Only **one** Phase 1 provider validation remains:
+1. X credentialed bounded trial — blocked because the App holding the Bearer Token is
+   not attached to a developer Project (HTTP 403 `client-not-enrolled`).
 
-OpenSea is closed and requires no current user setup.
+Telegram and OpenSea are closed and require no further user setup.
 
 ---
 
-## 1. Telegram — do this first
+## 1. Telegram — CLOSED 2026-08-29
 
 ### Exact user action
 1. In Telegram, create a bot with `@BotFather` using `/newbot`.
@@ -39,18 +39,15 @@ If `TELEGRAM_CHAT_ID` is absent, the disposable probe:
 If the bot already has a webhook, use a clean test bot or configure `TELEGRAM_CHAT_ID` explicitly; the spike will not silently remove a webhook.
 
 ### Current observed state
-Guarded GitHub Actions smoke reobserved on 2026-08-29 (run `33252936929`, earlier run `33172110528`):
-- `TELEGRAM_BOT_TOKEN`: absent
-- delivery step: skipped
-- network send attempted: false
-
-Repository Actions-secret enumeration on 2026-08-29 returned zero secrets and zero environments.
+Run `33255435740` on 2026-08-29 delivered a real Korean dry-run to `@nftmr_bot`:
+HTTP 200, `message_id 4`, 467.8 ms, chat auto-resolved, `chat_id_matches true`, no CTA.
+No further Telegram setup is required.
 
 See `docs/spikes/SPIKE-TG-001-RESULT.md`.
 
 ---
 
-## 2. X — do after Telegram
+## 2. X — the only remaining setup
 
 ### Current public contract already resolved
 Current official X documentation observed 2026-08-29 states:
@@ -87,12 +84,13 @@ Bounded `both` mode:
 The stream leg refuses to run if the project already has Filtered Stream rules, preventing unrelated rules from creating additional test reads.
 
 ### Current observed state
-No-cost GitHub Actions preflight on 2026-08-29 (runs `33245992097` and `33252938234`) observed:
-- `spikes/x_probe.py`: compile PASS
-- `X_BEARER_TOKEN`: absent
-- paid API call attempted: false
+`X_BEARER_TOKEN` is configured, but the credentialed bounded run `33255336140` on
+2026-08-29 returned **HTTP 403 `client-not-enrolled`** on both legs: the App that issued
+the Bearer Token is not attached to a developer Project. Zero Posts were returned and the
+actual Post-read cost was **$0.00**, so no credit was consumed and no stream rule was created.
 
-Repository Actions-secret enumeration on 2026-08-29 returned zero secrets and zero environments.
+Remaining user action: in the X developer portal, attach the App to a Project (or recreate
+the App inside a Project), reissue the Bearer Token, and update the `X_BEARER_TOKEN` secret.
 
 See `docs/spikes/SPIKE-X-001-RESULT.md`.
 

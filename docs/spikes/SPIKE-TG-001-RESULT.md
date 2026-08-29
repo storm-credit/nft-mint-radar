@@ -1,7 +1,7 @@
 # SPIKE-TG-001 Result — Telegram delivery
 
 ## Status
-**PAPER_VALIDATED / CREDENTIAL_PATH_PROBED / BLOCKED_BY_MISSING_TELEGRAM_BOT_TOKEN**
+**SPIKE_VALIDATED — real Korean dry-run delivered 2026-08-29**
 
 No production code was written. No Telegram network send was attempted without a configured bot token.
 
@@ -46,7 +46,38 @@ Observed credential state:
 
 Repository secret enumeration on the same date returned zero configured Actions secrets and zero environments, so the absence is a repository-configuration fact, not a workflow-context artifact.
 
-## Exact user action required
+## Operational delivery observed — 2026-08-29
+`Telegram Spike Smoke` run `33255435740`, after the bot token was configured and the
+user sent `/start` to `@nftmr_bot`.
+
+Observed:
+- provider HTTP status: **200**;
+- `ok`: **true**;
+- provider `message_id`: **4**;
+- end-to-end send latency: **467.8 ms**;
+- chat target resolution: `getUpdates-private-chat` — resolved automatically, no
+  `TELEGRAM_CHAT_ID` was configured;
+- `chat_id_matches`: **true** — the chat the provider echoed back is the chat the probe
+  targeted, so the message went to the intended private conversation;
+- `korean_text_sent`: **true**;
+- `cta_present`: **false** — the dry-run carries no wallet-impacting call to action;
+- one `sendMessage` call produced exactly one provider Message result.
+
+Prior fail-closed behavior on the same bot remains observed and is part of this evidence:
+runs `33254983732` and `33255307246` returned `update_count: 0` and refused to send
+because no private chat existed yet. The probe never guessed a target.
+
+### Contract conclusions
+- Telegram is confirmed usable as the Phase 1 notification destination.
+- Automatic chat resolution from a clean bot works; the user never had to look up a chat id.
+- Delivery is observable (status + message id + latency), which is what the outbox/retry
+  contract needs to decide success.
+- Telegram is still not treated as exactly-once transport: local outbox fingerprint state
+  remains responsible for deduplication. This spike delivered one message and does not
+  by itself prove repeat-suppression; that belongs to the notifier implementation and its
+  fixtures, not to provider behavior.
+
+## Superseded — exact user action required
 1. Create a bot with `@BotFather`.
 2. Add the token to repository Actions secrets as `TELEGRAM_BOT_TOKEN`.
 3. Open the bot in Telegram and send `/start` once.
@@ -63,4 +94,6 @@ After the token exists and `/start` has been sent:
 - retain retry/dedup behavior as the notifier contract.
 
 ## Gate impact
-Telegram remains a Phase 1 blocker, but the blocker is now precisely **one missing user-owned credential plus `/start`** rather than an unresolved integration design.
+**Telegram no longer blocks Phase 1.** `SPIKE-TG-001 = PASS`.
+
+The remaining Phase 1 operational blocker is X alone.

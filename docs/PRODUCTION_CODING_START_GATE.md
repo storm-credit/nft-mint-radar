@@ -91,19 +91,24 @@ Before evaluating:
 
 OpenSea no longer blocks Phase 1.
 
-### Telegram — BLOCKED ONLY BY USER-OWNED TOKEN
-Readiness already observed:
+### Telegram — CLOSED
+Real delivery observed 2026-08-29 in run `33255435740`: HTTP 200, `message_id 4`,
+467.8 ms, chat auto-resolved via `getUpdates`, `chat_id_matches true`, Korean text,
+no CTA, one send producing one provider Message. Telegram no longer blocks Phase 1.
+
+Readiness previously observed:
 - [x] disposable probe/workflow ready;
 - [x] missing-token path fails closed;
 - [x] no network send occurs when token is absent;
 - [x] chat id can be resolved from clean-bot `/start` through bounded `getUpdates`, or supplied explicitly.
 
-Still required:
-- [ ] `TELEGRAM_BOT_TOKEN` configured through secret/runtime;
-- [ ] user sends `/start`;
-- [ ] one Korean dry-run arrives;
-- [ ] provider response/message id observed;
-- [ ] single-delivery/retry/dedup result recorded.
+Completed:
+- [x] `TELEGRAM_BOT_TOKEN` configured through secret;
+- [x] user sent `/start` to `@nftmr_bot`;
+- [x] one Korean dry-run delivered;
+- [x] provider response/message id/latency observed;
+- [x] one send produced one provider Message; dedup remains a local outbox
+      responsibility and is verified by notifier fixtures, not by this spike.
 
 ### X — PAPER/COST CONTRACT CLOSED; BLOCKED ONLY BY CREDENTIALED RUN
 Current official public contract observed 2026-08-29:
@@ -119,8 +124,9 @@ Current official public contract observed 2026-08-29:
 - [x] stream leg refuses pre-existing rules and removes its temporary rule.
 
 Still required:
-- [ ] `X_BEARER_TOKEN` configured through secret/runtime;
-- [ ] enough API credit for the bounded trial;
+- [x] `X_BEARER_TOKEN` configured through secret;
+- [ ] App attached to a developer Project — current token returns 403 `client-not-enrolled`;
+- [ ] enough API credit for the bounded trial (not yet exercised; the 403 cost $0.00);
 - [ ] explicit paid-run confirmation supplied;
 - [ ] bounded Recent Search sample observed;
 - [ ] bounded Filtered Stream rule/connection lifecycle observed, or precise account restriction recorded;
@@ -145,7 +151,7 @@ Still required:
 After Telegram/X pass or a named item is explicitly waived:
 - [x] OpenSea spike result saved and reconciled;
 - [x] X paper/access contract reconciled;
-- [ ] save Telegram real-delivery result;
+- [x] save Telegram real-delivery result;
 - [ ] save X credentialed result;
 - [ ] update final X source mode/budget assumptions;
 - [ ] verify no derived schema/prompt/fixture/spike mapping is stale;
@@ -189,5 +195,7 @@ If later evidence invalidates a frozen assumption:
 **`SPIKE_REQUIRED / PRODUCTION CODING BLOCKED`**
 
 Only Phase 1 blocking evidence remaining:
-1. Telegram real delivery after one bot token + `/start`;
-2. X bounded credentialed run after one Bearer Token + API credit.
+1. X bounded credentialed run — the current Bearer Token returns HTTP 403
+   `client-not-enrolled` because its App is not attached to a developer Project.
+
+Telegram closed 2026-08-29.

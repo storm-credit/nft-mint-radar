@@ -2,7 +2,7 @@
 
 ## Current verdict
 
-**Deep Design v1.1 canonical sync complete / Minimum-Action governance adopted / Harness logical-role architecture synced / Harness schemas v1.1 synced / Eval fixtures synced / Local Action Space audit PASS / OpenSea operational spike CLOSED / Telegram credential path probed / X paper-cost contract resolved + no-cost preflight PASS / P0 credentialed operational evidence 2건 미완료 / Production Coding BLOCKED**
+**Deep Design v1.1 canonical sync complete / Minimum-Action governance adopted / Harness logical-role architecture synced / Harness schemas v1.1 synced / Eval fixtures synced / Local Action Space audit PASS / OpenSea operational spike CLOSED / Telegram operational spike PASS / X paper-cost contract resolved but credentialed access blocked by App-not-in-Project enrollment / P0 credentialed operational evidence 1건 미완료 / Production Coding BLOCKED**
 
 Current gate: **`SPIKE_REQUIRED / PRODUCTION CODING BLOCKED`**.
 
@@ -92,27 +92,22 @@ Coverage conclusion:
 
 ---
 
-## Telegram operational spike — credential path ready, delivery still blocked
+## Telegram operational spike — PASS
 See `docs/spikes/SPIKE-TG-001-RESULT.md`.
 
-Guarded Actions smoke observed (2026-08-28 run `33172110528`, reobserved 2026-08-29 run `33252936929`):
-- workflow/probe path ready;
-- `TELEGRAM_BOT_TOKEN`: **ABSENT** at both observed runs;
-- delivery step skipped;
-- network send attempted: false;
-- repository Actions-secret enumeration on 2026-08-29: zero secrets, zero environments.
+Real delivery observed 2026-08-29 (run `33255435740`):
+- provider HTTP 200, `ok: true`, `message_id: 4`, latency 467.8 ms;
+- chat resolved automatically via `getUpdates-private-chat`; no `TELEGRAM_CHAT_ID` configured;
+- `chat_id_matches: true`; Korean text sent; `cta_present: false`;
+- one `sendMessage` call produced exactly one provider Message.
 
-User-side prerequisite is now minimal:
-1. create bot with `@BotFather`;
-2. add Actions secret `TELEGRAM_BOT_TOKEN`;
-3. send `/start` once.
+Fail-closed behavior observed on the same bot before `/start` existed
+(runs `33254983732`, `33255307246`): `update_count: 0`, no send attempted, no target guessed.
 
-`TELEGRAM_CHAT_ID` is normally unnecessary for the clean-bot spike.
+Bot in use: `@nftmr_bot`. `TELEGRAM_CHAT_ID` was never needed.
 
-Remaining evidence:
-- one Korean dry-run arrives;
-- provider message id/latency observed;
-- single-delivery/dedup contract retained.
+Dedup remains a local outbox responsibility; Telegram is still not treated as
+exactly-once transport, and this spike does not claim to prove repeat-suppression.
 
 ---
 
@@ -162,16 +157,11 @@ Remaining evidence:
 
 ---
 
-## Remaining Phase 1 P0 blockers — exactly 2
+## Remaining Phase 1 P0 blockers — exactly 1
 
-### 1. Telegram
-External user-owned prerequisite:
-- `TELEGRAM_BOT_TOKEN`: **PRESENT** since 2026-08-29; token authenticates and the bot
-  (`@nftmr_bot`) has no conflicting webhook;
-- **`/start` not yet sent** — `getUpdates` returned `update_count: 0`, so the probe found
-  no private chat and fail-closed without sending (runs `33254983732`, `33255307246`).
+Telegram closed 2026-08-29. The only remaining Phase 1 operational blocker is X.
 
-### 2. X
+### 1. X
 External user-owned prerequisite:
 - `X_BEARER_TOKEN`: **PRESENT** since 2026-08-29;
 - **App must be attached to a developer Project** — current token returns
@@ -214,7 +204,7 @@ No additional P0 design/code uncertainty is known before those credentials exist
 - [x] runtime topology/provider target selected.
 - [x] OpenSea operational spike complete and reconciled.
 - [x] X public pricing/access contract revalidated and bounded probe ready.
-- [ ] Telegram real delivery complete.
+- [x] Telegram real delivery complete.
 - [ ] X credentialed bounded run complete and final mode frozen.
 - [ ] remaining results reconciled into canonical status/ADR if required.
 - [ ] no unresolved P0 provider feasibility ambiguity.
@@ -224,9 +214,9 @@ No additional P0 design/code uncertainty is known before those credentials exist
 ## Next action
 No production collectors yet.
 
-As soon as credentials exist:
-1. Telegram dry-run;
-2. X bounded <=$0.10 trial;
-3. reconcile results;
-4. move to `FREEZE_PENDING`;
-5. if no P0 remains, set `PHASE_1_CODING_READY` and begin production implementation in the frozen order.
+1. ~~Telegram dry-run~~ — done 2026-08-29, PASS;
+2. X bounded <=$0.10 trial — retry after the App is attached to a developer Project;
+3. reconcile results and freeze the X source mode;
+4. run the full cross-system Red Team;
+5. move to `FREEZE_PENDING`;
+6. if no P0 remains, set `PHASE_1_CODING_READY` and begin production implementation in the frozen order.
