@@ -39,6 +39,23 @@ Two operational limits to design against:
 - Spritehood, a $1.28M mint, is **unverified on Blockscout**. "Verified source code" is therefore
   **not** a usable quality filter on this chain.
 
+### Canonical mint event topics
+Recorded here because a probe written against this document used recalled values instead, and two of
+three were wrong — one with a hallucinated tail, one only 63 hex characters. Either would have made
+every ERC-1155 mint invisible and produced a confident, false "on-chain detection is thin" result.
+
+```text
+Transfer(address,address,uint256)                         0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef
+TransferSingle(address,address,address,uint256,uint256)   0xc3d58168c5ae7397731d063d5bbf3d657854427343f4c083240f7aacaa2d0f62
+TransferBatch(address,address,address,uint256[],uint256[]) 0x4a39dc06d4c0dbc64b70af90fd698a233a518aa5d07e595d983b8c0526c8f7fb
+```
+
+ERC-20 and ERC-721 share the `Transfer` topic0, so a token filter cannot rely on topic0 alone — an
+ERC-721 mint is distinguished by having three indexed topics, an ERC-20 transfer by two.
+
+Any code using these must validate the shape at load time. A malformed topic matches nothing, and
+"matches nothing" is indistinguishable from "there was nothing to match" in the output.
+
 ### The 100 ms block time is a non-issue, if the design is right
 Per-block scanning is dead on arrival: ~26M blocks/month at 60 CU each is ~1.56B CU ≈ **$700/month**
 for one chain, and 10 blocks/sec already exceeds Blockscout's free 5 RPS.

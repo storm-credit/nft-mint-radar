@@ -8,13 +8,43 @@ on:
         required: true
         type: choice
         options:
+          - alphabot
           - opensea
+          - onchain
           - telegram
           - x
       opensea_chains:
         description: "OpenSea chain keys/aliases to try"
         required: false
         default: "ethereum,base,robinhood"
+        type: string
+      onchain_mode:
+        description: "On-chain probe mode"
+        required: false
+        default: "timing"
+        type: choice
+        options:
+          - detect
+          - timing
+      onchain_chains:
+        description: "On-chain chain keys/aliases to try"
+        required: false
+        default: "ethereum,base,robinhood"
+        type: string
+      onchain_max_blocks:
+        description: "Recent blocks to scan per chain"
+        required: false
+        default: "2000"
+        type: string
+      onchain_max_contracts:
+        description: "Contracts per chain for deploy-to-first-mint timing"
+        required: false
+        default: "10"
+        type: string
+      onchain_max_rpc_calls:
+        description: "Hard total JSON-RPC call cap"
+        required: false
+        default: "500"
         type: string
       x_mode:
         description: "X bounded mode. both has a $0.10 Post-read ceiling at current public pricing"
@@ -45,6 +75,17 @@ permissions:
   contents: read
 
 jobs:
+  alphabot:
+    if: ${{ inputs.probe == 'alphabot' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run Alphabot disposable allowlist-flow probe
+        env:
+          ALPHABOT_API_KEY: ${{ secrets.ALPHABOT_API_KEY }}
+        run: python spikes/alphabot_probe.py --max-requests 6
+
   opensea:
     if: ${{ inputs.probe == 'opensea' }}
     runs-on: ubuntu-latest
@@ -56,6 +97,27 @@ jobs:
           OPENSEA_API_KEY: ${{ secrets.OPENSEA_API_KEY }}
           OPENSEA_CHAINS: ${{ inputs.opensea_chains }}
         run: python spikes/opensea_probe.py --chains "$OPENSEA_CHAINS" --limit 30 --detail-limit 10
+
+  onchain:
+    if: ${{ inputs.probe == 'onchain' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run disposable on-chain mint timing probe
+        env:
+          ONCHAIN_MODE: ${{ inputs.onchain_mode }}
+          ONCHAIN_CHAINS: ${{ inputs.onchain_chains }}
+          ONCHAIN_MAX_BLOCKS: ${{ inputs.onchain_max_blocks }}
+          ONCHAIN_MAX_CONTRACTS: ${{ inputs.onchain_max_contracts }}
+          ONCHAIN_MAX_RPC_CALLS: ${{ inputs.onchain_max_rpc_calls }}
+        run: >-
+          python spikes/onchain_probe.py
+          --mode "$ONCHAIN_MODE"
+          --chains "$ONCHAIN_CHAINS"
+          --max-blocks "$ONCHAIN_MAX_BLOCKS"
+          --max-contracts "$ONCHAIN_MAX_CONTRACTS"
+          --max-rpc-calls "$ONCHAIN_MAX_RPC_CALLS"
 
   telegram:
     if: ${{ inputs.probe == 'telegram' }}
