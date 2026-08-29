@@ -557,3 +557,114 @@ provider `message_id` is recorded.
 - retry storms
 
 ---
+
+---
+
+## F33 — Deadline passes with no result evidence
+### Input
+An opportunity is in `REGISTRATION_CLOSED`. `results_at` passes. No source publishes results,
+no cancellation appears, and no further official activity is observed.
+
+### Expected
+- `Opportunity.state -> EXPIRED` accepted from an actionable state
+- transition is not `STATE_TRANSITION_REJECTED`
+- routine reminders stop
+- no CTA is rendered
+
+### Forbidden
+- staying in `RESULTS_PENDING` indefinitely while alerting
+- rejecting `EXPIRED` for skipping intermediate states
+- inventing a state value outside the `Opportunity.state` enum
+
+---
+
+## F34 — Unavailable evidence cannot open a stage
+### Input
+A stage has `open_at` in the past. The only evidence supporting the schedule comes from an official
+post that has since been deleted, so its Evidence carries
+`source_availability = UNAVAILABLE`. No platform or on-chain evidence shows the mint live.
+
+### Expected
+- stage does not transition to `OPEN`
+- `source_availability = UNAVAILABLE` is not accepted as current evidence for the transition
+- severity capped at WATCH
+- the unavailability is surfaced
+
+### Forbidden
+- opening the stage from the deleted post
+- opening the stage because the local clock passed `open_at`
+- treating `UNAVAILABLE` as `REVOKED`
+- deleting the Evidence
+
+---
+
+## F35 — official_action_url is never rendered directly
+### Input
+A stage carries a populated `official_action_url` (a `VerifiedLink` with a verified project
+relation). No `ActionLinkAssessment` reaches `CONSISTENT` for it in this cycle.
+
+### Expected
+- `DecisionOutput.cta_link` is null
+- rendered Telegram text contains no wallet-impacting CTA
+- `contains_cta` false
+- the opportunity can still be reported at WATCH/ACTION without a CTA
+
+### Forbidden
+- rendering the URL because the link's identity relation is verified
+- reading `official_action_url` in the renderer
+- treating `VerifiedLink.verification_state` as CTA safety
+
+---
+
+## F36 — Fingerprint buckets come from claim time
+### Input
+Two sources report the same claimed deadline, fetched 40 minutes apart. Then a `CORRECTION` arrives
+that changes wording only, with identical deadline, price, supply, action URL, contract, CTA safety
+and risk.
+
+### Expected
+- both observations produce the same `deadline_bucket` and one fingerprint
+- exactly one notification for the deadline claim
+- the wording-only `CORRECTION` does not increment `material_version`
+- no re-alert for the wording-only correction
+
+### Forbidden
+- bucketing from observation/fetch time
+- two notifications for one claimed deadline
+- incrementing `material_version` when no material re-alert key changed
+
+---
+
+## F37 — Cursor never advances ahead of persisted evidence
+### Input
+An adapter returns raw events plus `next_cursor`. The process crashes after the raw events are
+returned but before they are durably persisted.
+
+### Expected
+- `next_cursor` was not advanced past the unpersisted events
+- the next run re-reads the overlap window
+- RawEvent idempotency collapses the duplicates
+- the actionable event is still normalized and alerted
+
+### Forbidden
+- committing `next_cursor` before the raw-event transaction
+- silently skipping the unpersisted window
+- creating duplicate Opportunities from the replay
+
+---
+
+## F38 — X stream rule discipline
+### Input
+Two candidate production stream rule sets: (a) `NFT lang:en -is:retweet`;
+(b) `from:verified_official_account -is:retweet -is:reply`.
+
+### Expected
+- (a) is rejected as a broad keyword-only rule
+- (b) is accepted as author-scoped
+- rejection is deterministic configuration validation, not a model judgement
+- the rejection reason names the ADR-010 constraint
+
+### Forbidden
+- accepting (a) as a temporary or test rule in production configuration
+- allowing a rule whose match set is not bounded by author
+- treating the source budget as the only protection against broad rules

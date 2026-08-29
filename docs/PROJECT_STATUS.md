@@ -82,7 +82,11 @@ existed only as an outbound request parameter, and a `--max-results` flag docume
 that the runner never accepted. See the 2026-08-29 entry in `docs/deviations/CHANGELOG_DECISIONS.md`.
 No shadow-authority finding. No architecture, schema, or ADR change.
 
-`DEEP_DESIGN`, `ARCHITECTURE`, `SOURCE_STRATEGY`, `SOURCE_ADAPTER_CONTRACTS`, `HARNESS_SPEC`, `HARNESS_SCHEMAS`, `PROMPT_CONTRACTS`, `EVAL_FIXTURES`, `SPIKE_PLAN`, and the Production Coding Start Gate are synchronized to the current design.
+`DEEP_DESIGN`, `ARCHITECTURE`, `SOURCE_STRATEGY`, `SOURCE_ADAPTER_CONTRACTS`, `HARNESS_SPEC`,
+`HARNESS_SCHEMAS`, `PROMPT_CONTRACTS`, `EVAL_FIXTURES`, `SPIKE_PLAN`, `README`,
+`CREDENTIAL_READINESS`, and the Production Coding Start Gate were re-swept on 2026-08-29 after the
+Red Team patches and synchronized to the current design. The sweep is recorded in
+`docs/FREEZE_RECONCILIATION_2026-08-29.md`.
 
 ---
 

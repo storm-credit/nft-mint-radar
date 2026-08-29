@@ -132,7 +132,7 @@ Current official public contract observed 2026-08-29:
 - [x] Pay-per-use Filtered Stream documented available;
 - [x] Filtered Stream limits observed: 1,000 rules/project, 1 connection;
 - [x] ~6–7 second P99 delivery documented;
-- [x] 2,000,000 Post-read/month Pay-per-use cap documented;
+- [x] Pay-per-use monthly cap documented: 2,000,000 at the earlier revision, 3,000,000 when rechecked 2026-08-29;
 - [x] Bearer Token documented for app-only public reads;
 - [x] disposable probe compile PASS;
 - [x] absent-token path observed with paid calls = 0;
@@ -220,6 +220,6 @@ If later evidence invalidates a frozen assumption:
 All Phase 1 blocking operational spikes are closed: OpenSea, Telegram, X.
 No user-owned credential is outstanding.
 
-Production coding is still blocked on analysis, not evidence collection:
-1. full cross-system Red Team with P0 = 0;
-2. remaining section G reconciliation.
+Cross-system Red Team ran 2026-08-29 and closed every P0 (`docs/RED_TEAM_2026-08-29.md`).
+
+Production coding is blocked only on the remaining section G freeze reconciliation.

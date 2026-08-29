@@ -34,7 +34,7 @@ No longer Phase 1 blocking.
 
 ---
 
-## SPIKE-TG-001 — Telegram delivery — Phase 1 BLOCKING
+## SPIKE-TG-001 — Telegram delivery — CLOSED 2026-08-29 (PASS)
 ### Question
 Can one action alert be delivered safely and observably to the user's Telegram with local dedup/outbox semantics?
 
@@ -69,7 +69,7 @@ Credential-path smoke already ran and proved:
 
 ---
 
-## SPIKE-X-001 — X discovery access/noise — Phase 1 BLOCKING unless X becomes optional
+## SPIKE-X-001 — X discovery access/noise — CLOSED 2026-08-29, mode frozen in ADR-010
 ### Question
 Can official-project/reactivation/WL signals be detected with acceptable useful/noise ratio using a bounded Pay-per-use configuration?
 
@@ -80,15 +80,20 @@ Current official documentation observed 2026-08-29 states:
 - Filtered Stream is available to Pay-per-use;
 - Filtered Stream: 1,000 rules/project, 1 connection, core operators;
 - approximate 6–7 second P99 stream delivery;
-- pay-per-use cap: 2,000,000 Post reads/month before Enterprise;
+- pay-per-use cap: 3,000,000 Post reads/month before Enterprise (rechecked 2026-08-29);
 - Bearer Token supports app-only public-data reads.
 
 Prices are rechecked in Developer Console at execution/production time.
 
-### Provisional mode
-`FILTERED_STREAM_PRIMARY + RECENT_SEARCH_RECOVERY`
+### Frozen mode
+`STREAM_PRIMARY_WITH_SEARCH_RECOVERY` — frozen by `ADR-010` on measured evidence.
 
-Not frozen until credentialed observation succeeds.
+Constraints that are part of the freeze: stream rules must be author-scoped `from:` clauses over
+verified official accounts with `-is:retweet -is:reply`; broad keyword-only rules are forbidden;
+Recent Search is recovery-only advanced by `since_id`; a deterministic source budget gates every paid
+read; the adapter degrades to `X_OPTIONAL` under ADR-002 if measured signal ROI stays poor.
+
+Also measured: the Free plan returns 403 on both endpoints and cannot serve this product.
 
 ### Bounded paid method
 The disposable probe hard-caps the initial test at the observed public rate:
@@ -155,17 +160,18 @@ Prior spike/ADR selected hybrid topology with Railway worker + PostgreSQL and Gi
 ---
 
 ## Current execution order
-Only two Phase 1 blocking spikes remain:
-1. `SPIKE-TG-001` — Telegram, after `TELEGRAM_BOT_TOKEN` + `/start`;
-2. `SPIKE-X-001` — X, after developer app/credits + `X_BEARER_TOKEN`.
+**No Phase 1 blocking spike remains.** OpenSea, Telegram and X are all closed.
+
+Remaining work is freeze reconciliation, then production implementation in the frozen order recorded
+in `docs/PHASE_1_FROZEN_CONFIG.md`.
 
 Campaign/Dune/Discord do not block Phase 1 unless a future ADR makes them mandatory.
 
 ## Phase 1 coding gate
 Before production Phase 1 code:
 - OpenSea live mapping resolved — DONE;
-- Telegram delivery/config resolved;
-- X resolved or explicitly optional by ADR;
+- Telegram delivery/config resolved — DONE;
+- X resolved and mode frozen by ADR-010 — DONE;
 - runtime already resolved;
 - spike results reconciled into canonical design/status;
 - no stale derived authority remains;

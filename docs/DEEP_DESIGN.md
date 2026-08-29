@@ -154,11 +154,19 @@ Evidence:
   trust_tier: T0|T1|T2|T3|T4
   confidence: LOW|MEDIUM|HIGH
   verification_state: UNVERIFIED|CORROBORATED|OFFICIAL|CONFLICTED|REVOKED|STALE
+  source_availability: AVAILABLE|UNAVAILABLE|UNKNOWN
+  source_unavailable_since: datetime_utc|null
   valid_until: datetime_utc|null
   supersedes_evidence_id: string|null
 ```
 
 Evidence is append-only. Corrections append new Evidence and retain prior history.
+
+`source_availability` is deliberately separate from `verification_state`. Availability answers "can
+the source still be fetched"; verification answers "how well is the claim supported". A deleted post
+is `UNAVAILABLE` without becoming `REVOKED`, because disappearance is not disavowal. This is the field
+the `unavailable` rules under Edit/delete and Date/deadline refer to; without it those rules would be
+unimplementable.
 
 ## 2.4 AssetAmount
 ```yaml

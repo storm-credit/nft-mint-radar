@@ -58,6 +58,10 @@ DiscoveryOutput:
     - AIRDROP
     - WALLET_SIGNAL
     - RISK_SIGNAL
+  # Coarse discovery classes, NOT Evidence.event_type values. They are intentionally
+  # broader than the canonical `event_type` enum in DEEP_DESIGN.md and must be mapped
+  # to a canonical `*_ANNOUNCED`/`*_OPENED` value during normalization, never persisted
+  # as an event type.
     - OTHER
   extracted_links: [string]
   extracted_claims: [NormalizedClaim]

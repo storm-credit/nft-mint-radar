@@ -4,11 +4,12 @@
 List the minimum user-owned credentials/configuration still required to finish Phase 1 operational validation.
 
 ## Current blocker count
-Only **one** Phase 1 provider validation remains:
-1. X credentialed bounded trial — blocked because the App holding the Bearer Token is
-   not attached to a developer Project (HTTP 403 `client-not-enrolled`).
+**Zero.** No Phase 1 provider validation remains, and no user-owned credential is outstanding.
 
-Telegram and OpenSea are closed and require no further user setup.
+OpenSea, Telegram and X are all closed. Both configured secrets, `TELEGRAM_BOT_TOKEN` and
+`X_BEARER_TOKEN`, have been exercised against live providers.
+
+What remains below is optional/manual recheck material and later-phase credentials, not a blocker.
 
 ---
 
@@ -47,7 +48,7 @@ See `docs/spikes/SPIKE-TG-001-RESULT.md`.
 
 ---
 
-## 2. X — the only remaining setup
+## 2. X — CLOSED 2026-08-29
 
 ### Current public contract already resolved
 Current official X documentation observed 2026-08-29 states:
@@ -55,7 +56,7 @@ Current official X documentation observed 2026-08-29 states:
 - Pay-per-use Filtered Stream available;
 - Filtered Stream: 1,000 rules/project, 1 connection;
 - approximate 6–7 second P99 delivery;
-- pay-per-use monthly cap: 2,000,000 Post reads;
+- pay-per-use monthly cap: 3,000,000 Post reads (rechecked 2026-08-29);
 - Bearer Token supports app-only public reads.
 
 So the old paper-pricing ambiguity is closed.

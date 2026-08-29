@@ -165,11 +165,14 @@ See [`docs/PROJECT_STATUS.md`](docs/PROJECT_STATUS.md) for the source of truth.
 Current high-level gate:
 
 ```text
-SPIKE_REQUIRED / PRODUCTION CODING BLOCKED
+FREEZE_PENDING / PRODUCTION CODING BLOCKED
 ```
 
 Completed:
 - Deep Design v1.1 canonical sync
+- Telegram operational spike (PASS)
+- X operational spike (CLOSED, mode frozen in ADR-010)
+- cross-system Red Team (P0 = 0)
 - minimum-action governance adoption
 - harness logical contracts + schemas
 - golden eval fixture design
@@ -185,9 +188,12 @@ OpenSea live validation observed:
 - real GTD / FCFS / holder / free / public structures observed
 - Base returned zero `upcoming` rows while active Base mint surfaces existed, confirming that one calendar/API view is not complete discovery coverage
 
-Remaining Phase 1 blockers:
-1. Telegram real delivery — requires user bot token + `/start`
-2. X real access / latency / noise / cost mode
+All Phase 1 blocking operational spikes are closed: OpenSea, Telegram (`SPIKE-TG-001` PASS,
+real delivery observed), and X (`SPIKE-X-001` CLOSED, mode frozen in `ADR-010`). The cross-system
+Red Team ran on 2026-08-29 and closed every P0.
+
+Remaining before coding: freeze reconciliation only. See
+[`docs/PROJECT_STATUS.md`](docs/PROJECT_STATUS.md), which is the authority for current state.
 
 Production feature coding starts only after the start gate is reconciled and set to `PHASE_1_CODING_READY`.
 
