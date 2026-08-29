@@ -143,7 +143,9 @@ Bounded credentialed test is ready:
 Credentialed bounded run attempted 2026-08-29 (run `33255336140`, opt-in supplied,
 rate rechecked at `$0.005/resource` immediately before execution):
 - both legs returned **HTTP 403 `client-not-enrolled`**;
-- the App holding the Bearer Token is not attached to a developer Project;
+- corrected cause: the App **is** attached to a Project, but that project is on the **Free**
+  plan, which carries no Post-read entitlement. Measured fact: a Free-plan App cannot call
+  Recent Search or Filtered Stream rules;
 - Posts returned: 0; actual Post-read cost: **$0.00**; ceiling breach: false;
 - no temporary stream rule was created, so no cleanup was pending;
 - this is an account-enrollment blocker, not a design, pricing, or token-validity blocker.
@@ -164,8 +166,9 @@ Telegram closed 2026-08-29. The only remaining Phase 1 operational blocker is X.
 ### 1. X
 External user-owned prerequisite:
 - `X_BEARER_TOKEN`: **PRESENT** since 2026-08-29;
-- **App must be attached to a developer Project** — current token returns
-  `client-not-enrolled` (403); this is the only known remaining X blocker;
+- **App sits in a Free-plan project with no Post-read entitlement** — 403
+  `client-not-enrolled`. The account already has an unused `NFT Mint Radar` Pay Per Use
+  project with 0 apps attached;
 - enough API credit for the bounded test (not yet exercised; the 403 cost $0.00).
 
 No additional P0 design/code uncertainty is known before those credentials exist.

@@ -85,12 +85,17 @@ The stream leg refuses to run if the project already has Filtered Stream rules, 
 
 ### Current observed state
 `X_BEARER_TOKEN` is configured, but the credentialed bounded run `33255336140` on
-2026-08-29 returned **HTTP 403 `client-not-enrolled`** on both legs: the App that issued
-the Bearer Token is not attached to a developer Project. Zero Posts were returned and the
-actual Post-read cost was **$0.00**, so no credit was consumed and no stream rule was created.
+2026-08-29 returned **HTTP 403 `client-not-enrolled`** on both legs. Zero Posts were
+returned, actual Post-read cost **$0.00**, no stream rule created.
 
-Remaining user action: in the X developer portal, attach the App to a Project (or recreate
-the App inside a Project), reissue the Bearer Token, and update the `X_BEARER_TOKEN` secret.
+Corrected cause: the App is attached to a Project, but that project is on the **Free** plan,
+which has no Post-read entitlement. **Free tier cannot be used for this product's X reads** —
+measured, not assumed. The account already has an unused `NFT Mint Radar` **Pay Per Use**
+project with 0 apps attached.
+
+Remaining user action, if X is kept: attach an App to the Pay Per Use project, reissue its
+Bearer Token, update the `X_BEARER_TOKEN` secret, and rerun the bounded test.
+If X is dropped instead, ADR-002 already allows freezing it as `X_OPTIONAL`.
 
 See `docs/spikes/SPIKE-X-001-RESULT.md`.
 

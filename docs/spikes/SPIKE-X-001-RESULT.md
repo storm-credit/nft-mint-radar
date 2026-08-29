@@ -116,22 +116,39 @@ pay-per-use cap; the earlier recorded figure of 2,000,000 is superseded.)
 Observed:
 - Recent Search leg: **HTTP 403**, `reason: client-not-enrolled`, latency 86.4 ms;
 - Filtered Stream leg: **HTTP 403** at the `list_rules` stage;
-- provider detail: the App supplying the Bearer Token is **not attached to a Project**;
+- provider detail text: "you must use keys and tokens from a developer App that is
+  attached to a Project", `required_enrollment: "Appropriate Level of API Access"`;
 - Posts returned: **0**;
 - actual estimated Post-read cost: **$0.00**;
 - `post_read_cost_ceiling_exceeded`: false;
 - no temporary stream rule was created, because the run failed before rule creation,
   so no cleanup was pending.
 
-Interpretation: this is an **account enrollment failure, not a token-validity, pricing,
-credit, or design failure**. The request was authenticated well enough for X to identify
-the client and reject it on enrollment grounds. The bounded-spend design behaved exactly
-as intended: a failed access attempt cost nothing.
+### Corrected root cause — 2026-08-29
+The first reading of this 403 was that the App was not attached to any Project. Developer
+portal state observed afterwards shows that reading was **wrong**: the App (client id
+`30418932`) *is* attached to `Default project`, and that project's plan is **Free**.
+A second project, `NFT Mint Radar`, exists on the **Pay Per Use** plan with **0 apps attached**.
 
-### Remaining user action
-Attach the App to a developer Project in the X developer portal (or create the App inside
-a Project and reissue its Bearer Token), then update the `X_BEARER_TOKEN` secret and rerun.
-No design change is required.
+So the accurate cause is **plan entitlement, not project attachment**. The provider's
+message names project attachment, but the operative field is
+`required_enrollment: "Appropriate Level of API Access"`. A Free-plan project does not carry
+Post-read entitlement for either endpoint tested.
+
+This is the first directly measured fact about Free-tier read access in this project, and it
+outranks the pricing documentation, which does not state Free-tier endpoint entitlements at all:
+
+**Free plan cannot call `GET /2/tweets/search/recent` and cannot call
+`GET /2/tweets/search/stream/rules`.** Both returned 403 from the same Free-plan App.
+
+The bounded-spend design behaved exactly as intended: a rejected run cost `$0.00`.
+
+### Options this opens
+1. Attach an App to the existing `NFT Mint Radar` Pay Per Use project, reissue its Bearer
+   Token, update the secret, and rerun the bounded `<= $0.10` test.
+2. Freeze X as `X_OPTIONAL` and run Phase 1 without it. ADR-002 already permits this: official
+   X is "P0 when access/budget permits but degrades cleanly", so no architecture change is
+   required to drop it. Cost is coverage, not correctness.
 
 ## Gate impact
 The old **pricing-definition ambiguity is closed**.
