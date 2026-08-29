@@ -54,11 +54,9 @@ Before evaluating:
 - [x] H0–H9 harness stages defined.
 - [x] typed logical I/O v1.1 synchronized with current domain model.
 - [x] prompt contracts reduced to narrow model-driven nodes.
-- [x] current golden fixture families include multi-stage/ERC20/FREE/compromised-official/manual-progress/critic cases.
+- [x] golden fixtures include multi-stage/ERC20/FREE/compromised-official/manual-progress/critic cases.
 - [x] failure/stop/error taxonomy defined.
 - [x] credential-free design dry-run exists.
-
-Production harness runner code is not required before this design gate; production feature coding still waits for provider evidence below.
 
 ---
 
@@ -77,41 +75,58 @@ Production harness runner code is not required before this design gate; producti
 - [x] provider outage/cost/rate limit
 - [x] God Agent / Tool Swamp / Agent Explosion
 - [x] Shadow Authority / Stale Derived Artifact
-- [x] current P0 design findings closed by targeted PATCH, not redesign.
+- [x] current P0 design findings closed by targeted PATCH.
 
 ---
 
 ## E. Phase 1 Blocking Operational Spikes
 
 ### OpenSea — CLOSED
-Observed live via GitHub Actions on 2026-08-28; see `docs/spikes/SPIKE-MARKET-001-RESULT.md`.
+- [x] instant credential path observed live;
+- [x] Ethereum/Base/Robinhood provider chain keys observed;
+- [x] >=10 real detail samples;
+- [x] multi-stage GTD/FCFS/holder/free/public structures;
+- [x] coverage incompleteness observed and documented;
+- [x] provider/environment degradation distinction established.
 
-- [x] instant credential path succeeds without committed secret;
-- [x] provider chain keys resolve: Ethereum / Base / Robinhood;
-- [x] live combined/per-chain upcoming queries succeed;
-- [x] >=10 real details fetched and mapped structurally;
-- [x] real multi-stage presale/GTD/FCFS/holder/public structures observed;
-- [x] Robinhood multi-stage structures observed;
-- [x] coverage gap documented: successful Base endpoint returned zero upcoming while active Base mint surfaces existed;
-- [x] environment-specific DNS degradation observed and isolated from provider feasibility;
-- [x] unknown/non-native payment asset behavior has a fail-closed domain path and does not require architecture change.
+OpenSea no longer blocks Phase 1.
 
-OpenSea provider feasibility no longer blocks Phase 1. OpenSea remains **not** a completeness authority.
+### Telegram — BLOCKED ONLY BY USER-OWNED TOKEN
+Readiness already observed:
+- [x] disposable probe/workflow ready;
+- [x] missing-token path fails closed;
+- [x] no network send occurs when token is absent;
+- [x] chat id can be resolved from clean-bot `/start` through bounded `getUpdates`, or supplied explicitly.
 
-### Telegram
-- [ ] bot token only through secret/runtime;
-- [ ] user sends `/start`; chat target resolves through explicit config or bounded `getUpdates` fallback;
-- [ ] one real Korean dry-run arrives once under local dedup semantics;
-- [ ] safe CTA/no-CTA rendering checked;
-- [ ] failure/retry result recorded.
+Still required:
+- [ ] `TELEGRAM_BOT_TOKEN` configured through secret/runtime;
+- [ ] user sends `/start`;
+- [ ] one Korean dry-run arrives;
+- [ ] provider response/message id observed;
+- [ ] single-delivery/retry/dedup result recorded.
 
-### X
-- [ ] real credential access succeeds;
-- [ ] bounded search/stream trial completed;
-- [ ] latency measured;
-- [ ] delivered/useful/noise volume measured;
-- [ ] cost projection measured from current pricing/console;
-- [ ] final mode frozen: STREAM_PRIMARY / SEARCH_PRIMARY / HYBRID / X_OPTIONAL.
+### X — PAPER/COST CONTRACT CLOSED; BLOCKED ONLY BY CREDENTIALED RUN
+Current official public contract observed 2026-08-29:
+- [x] Post read rate observed: `$0.005/resource`;
+- [x] Pay-per-use Filtered Stream documented available;
+- [x] Filtered Stream limits observed: 1,000 rules/project, 1 connection;
+- [x] ~6–7 second P99 delivery documented;
+- [x] 2,000,000 Post-read/month Pay-per-use cap documented;
+- [x] Bearer Token documented for app-only public reads;
+- [x] disposable probe compile PASS;
+- [x] absent-token path observed with paid calls = 0;
+- [x] paid test bounded to <= `$0.10` Post-read cost at observed public rate;
+- [x] stream leg refuses pre-existing rules and removes its temporary rule.
+
+Still required:
+- [ ] `X_BEARER_TOKEN` configured through secret/runtime;
+- [ ] enough API credit for the bounded trial;
+- [ ] explicit paid-run confirmation supplied;
+- [ ] bounded Recent Search sample observed;
+- [ ] bounded Filtered Stream rule/connection lifecycle observed, or precise account restriction recorded;
+- [ ] useful/noise sample classified;
+- [ ] Developer Console execution-time rate rechecked;
+- [ ] final mode frozen: `STREAM_PRIMARY_WITH_SEARCH_RECOVERY`, `SEARCH_PRIMARY`, or `X_OPTIONAL`.
 
 ---
 
@@ -122,16 +137,17 @@ OpenSea provider feasibility no longer blocks Phase 1. OpenSea remains **not** a
 - [ ] Guild supported integration if enabled.
 - [ ] Discord authorized server read — Phase 3.
 - [ ] Railway outbound/runtime activation check before actual deployment.
-- [ ] targeted non-native OpenSea payment-asset sample when available; current UNKNOWN path is fail-closed.
+- [ ] targeted non-native OpenSea payment-asset sample when available.
 
 ---
 
 ## G. Freeze reconciliation
-After remaining Telegram/X items pass or named items are explicitly waived:
+After Telegram/X pass or a named item is explicitly waived:
 - [x] OpenSea spike result saved and reconciled;
-- [ ] save Telegram/X spike results;
-- [ ] reconcile observed provider evidence into canonical design/ADR/status;
-- [ ] update X source mode/cost assumptions;
+- [x] X paper/access contract reconciled;
+- [ ] save Telegram real-delivery result;
+- [ ] save X credentialed result;
+- [ ] update final X source mode/budget assumptions;
 - [ ] verify no derived schema/prompt/fixture/spike mapping is stale;
 - [ ] freeze Phase 1 source/runtime configuration;
 - [ ] confirm no unresolved P0 provider ambiguity.
@@ -160,7 +176,7 @@ No central God Agent orchestration is introduced by default.
 ---
 
 ## I. Regression rule
-If later evidence invalidates frozen assumption:
+If later evidence invalidates a frozen assumption:
 1. mark only affected authority/derived artifacts STALE;
 2. stop impacted path;
 3. targeted Red Team/spike;
@@ -173,5 +189,5 @@ If later evidence invalidates frozen assumption:
 **`SPIKE_REQUIRED / PRODUCTION CODING BLOCKED`**
 
 Only Phase 1 blocking evidence remaining:
-1. Telegram real delivery;
-2. X operational access/cost/mode.
+1. Telegram real delivery after one bot token + `/start`;
+2. X bounded credentialed run after one Bearer Token + API credit.
