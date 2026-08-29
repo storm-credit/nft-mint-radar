@@ -37,3 +37,13 @@ Use this file only when implementation/spike work materially differs from the ac
 - Compatibility/migration impact: none; explicit `TELEGRAM_CHAT_ID` remains supported.
 - Follow-up: after the token is configured and `/start` sent, rerun the manual Telegram spike and record provider delivery evidence.
 - ADR required: NO — notifier architecture is unchanged.
+
+### 2026-08-29 — X spike narrows from open-ended pricing study to bounded credentialed validation
+- Original plan: rely on Developer Console pricing discovery first, then compare stream/search with an unspecified small paid trial and watchlist-size spend projection.
+- Actual change: current official X documentation now publicly exposes Post-read pricing and Pay-per-use Filtered Stream limits. The operational spike is hard-bounded to <=10 Recent Search Posts plus <=10 Stream Posts, currently <=$0.10 in Post-read charges at the documented $0.005/resource rate.
+- Why: the old paper-pricing ambiguity no longer exists, and Minimum-Action calls for removing resolved questions rather than keeping them in the runtime experiment.
+- Evidence: official X pricing/Filtered Stream/getting-access documentation revalidated 2026-08-29; no-cost GitHub Actions smoke run `33245992097` compiled the probe and confirmed `X_BEARER_TOKEN` is absent without making a paid call.
+- Impact: the remaining X P0 question is only credentialed access + real NFT useful/noise observation + final mode freeze. Provisional shape is `FILTERED_STREAM_PRIMARY + RECENT_SEARCH_RECOVERY`.
+- Compatibility/migration impact: no domain-schema change; X adapter contract, spike plan, runner, and readiness docs were synchronized.
+- Follow-up: after a Bearer Token and API credit are configured, run the explicit paid `both` spike with the manual confirmation string and reconcile the result.
+- ADR required: NO unless the observed run forces a different source architecture or makes X optional.
