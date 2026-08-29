@@ -1,83 +1,109 @@
 # Credential Readiness
 
 ## Purpose
-List the minimum external credentials/configuration still required to finish Phase 1 operational validation without committing secrets or starting production implementation.
+List the minimum user-owned credentials/configuration still required to finish Phase 1 operational validation.
 
 ## Current blocker count
-Only **two** Phase 1 provider validations still need user-owned credentials/access:
-1. Telegram
-2. X
+Only **two** Phase 1 provider validations remain:
+1. Telegram real delivery
+2. X credentialed bounded trial
 
-OpenSea provider feasibility is already operationally validated and no longer requires user setup.
-
----
-
-## Telegram — required / lowest-friction next step
-
-### User must do only this
-1. Create a bot with `@BotFather`.
-2. Store the token as GitHub Actions/runtime secret named `TELEGRAM_BOT_TOKEN`.
-3. Open that bot in Telegram and send `/start` once.
-
-That is enough for the disposable spike in the normal clean-bot case.
-
-### `TELEGRAM_CHAT_ID`
-Optional for the spike.
-
-If absent, `spikes/telegram_probe.py` uses `getUpdates` to locate the latest private conversation after `/start`.
-
-Exception:
-- if the bot already has an active webhook, `getUpdates` cannot be used simultaneously; then configure `TELEGRAM_CHAT_ID` explicitly or use a clean test bot.
-
-### Required evidence
-- one Korean dry-run message arrives;
-- provider response/message id observed;
-- chat target matches;
-- token never appears in logs;
-- retry/dedup semantics recorded.
-
-No wallet connection or CTA is needed for the first delivery spike.
+OpenSea is closed and requires no current user setup.
 
 ---
 
-## X — required after Telegram
-Needed:
-- X Developer app/project access;
-- Bearer token as `X_BEARER_TOKEN`;
-- current Developer Console endpoint pricing/credits;
-- explicit acceptable test/monthly spend cap.
+## 1. Telegram — do this first
 
-The manual workflow will not run X unless the user enters exactly:
+### Exact user action
+1. In Telegram, create a bot with `@BotFather` using `/newbot`.
+2. In repository `storm-credit/nft-mint-radar` add an Actions secret:
+   - name: `TELEGRAM_BOT_TOKEN`
+   - value: the BotFather token
+3. Open the created bot and send `/start` once.
+
+Do **not** paste the token into chat, issues, commits, files, or logs.
+
+### What you do NOT need to do
+- no OpenSea key;
+- no Telegram chat-id lookup in the normal clean-bot case;
+- no wallet connection;
+- no Telegram webhook configuration.
+
+### Why chat id is optional
+If `TELEGRAM_CHAT_ID` is absent, the disposable probe:
+1. verifies the bot has no conflicting webhook;
+2. calls `getUpdates`;
+3. selects the latest private chat created by `/start`;
+4. sends one Korean dry-run.
+
+If the bot already has a webhook, use a clean test bot or configure `TELEGRAM_CHAT_ID` explicitly; the spike will not silently remove a webhook.
+
+### Current observed state
+Guarded GitHub Actions smoke on 2026-08-28 observed:
+- `TELEGRAM_BOT_TOKEN`: absent
+- network send attempted: false
+
+See `docs/spikes/SPIKE-TG-001-RESULT.md`.
+
+---
+
+## 2. X — do after Telegram
+
+### Current public contract already resolved
+Current official X documentation observed 2026-08-29 states:
+- public Post read: `$0.005/resource`;
+- Pay-per-use Filtered Stream available;
+- Filtered Stream: 1,000 rules/project, 1 connection;
+- approximate 6–7 second P99 delivery;
+- pay-per-use monthly cap: 2,000,000 Post reads;
+- Bearer Token supports app-only public reads.
+
+So the old paper-pricing ambiguity is closed.
+
+### Exact user action
+1. Sign in to the X Developer Console.
+2. Create/enable a developer Project + App for read-only public-data use.
+3. Ensure sufficient API credit for the bounded spike. The designed Post-read ceiling is **$0.10 at the currently documented rate**; the console remains the execution-time authority.
+4. Generate/save the app Bearer Token.
+5. Add repository Actions secret:
+   - name: `X_BEARER_TOKEN`
+   - value: the Bearer Token
+
+Do not paste the Bearer Token into chat.
+
+### What happens next
+The manual `x` spike still refuses to run without the exact confirmation:
 
 `I_UNDERSTAND_X_MAY_COST`
 
-The first trial is intentionally bounded to a small recent-search result set. Do not widen watchlists or use a persistent stream until first observed cost/noise/utility is recorded.
+Bounded `both` mode:
+- Recent Search <=10 Posts -> current read-cost ceiling `$0.05`;
+- Filtered Stream <=10 Posts -> current read-cost ceiling `$0.05`;
+- total Post-read ceiling `$0.10` at the current public rate.
 
-Required evidence:
-- authenticated request succeeds;
-- useful/noise ratio on bounded NFT signal query;
-- latency;
-- current spend projection;
-- final operating mode: `STREAM_PRIMARY`, `SEARCH_PRIMARY`, `HYBRID`, or `X_OPTIONAL`.
+The stream leg refuses to run if the project already has Filtered Stream rules, preventing unrelated rules from creating additional test reads.
 
-Do not commit token values or screenshots containing credentials.
+### Current observed state
+No-cost GitHub Actions preflight on 2026-08-29 observed:
+- `spikes/x_probe.py`: compile PASS
+- `X_BEARER_TOKEN`: absent
+- paid API call attempted: false
+
+See `docs/spikes/SPIKE-X-001-RESULT.md`.
 
 ---
 
-## OpenSea — CLOSED for Phase 1 feasibility
-No user setup is required for the completed spike.
+## OpenSea — CLOSED
+No user setup required for Phase 1 feasibility.
 
-Observed live on GitHub Actions:
-- instant free API key issuance succeeded;
-- `ethereum`, `base`, `robinhood` provider keys resolved;
-- per-chain API calls succeeded;
-- 10/10 detail sample succeeded;
-- multi-stage GTD/FCFS/holder/public/free structures observed;
-- `upcoming` coverage was proven incomplete, so OpenSea remains a structured source, not completeness authority.
+Live GitHub Actions validation established:
+- instant free key issuance;
+- Ethereum/Base/Robinhood chain resolution;
+- real drop/stage detail mapping;
+- multi-stage GTD/FCFS/holder/free/public structures;
+- OpenSea `upcoming` is incomplete coverage and cannot be the sole discovery authority.
 
-See `docs/spikes/SPIKE-MARKET-001-RESULT.md`.
-
-A full `OPENSEA_API_KEY` may later be configured for longer-lived production use, but it is not a current user-action blocker.
+A persistent `OPENSEA_API_KEY` may later be used in production, but it is not a current blocker.
 
 ---
 
@@ -85,13 +111,13 @@ A full `OPENSEA_API_KEY` may later be configured for longer-lived production use
 
 ### Galxe
 - `GALXE_ACCESS_TOKEN`
-- live query required only before enabling the adapter in production.
+- needed only before enabling the adapter in production.
 
 ### PREMINT
-Partner/API access optional; do not block Phase 1 on approval.
+Partner/API access optional; do not block Phase 1.
 
 ### Guild
-Begin as supported public-reference/manual deep-link path until a read API is independently validated.
+Keep public-reference/manual path until a supported read contract is operationally validated.
 
 ### Dune — Phase 1.5
 - `DUNE_API_KEY`
@@ -102,12 +128,9 @@ Begin as supported public-reference/manual deep-link path until a read API is in
 
 ---
 
-## GitHub integration limitation
-The connected GitHub integration cannot safely enumerate repository Actions secrets. Secret presence must remain `UNKNOWN` until the corresponding workflow actually proves the credential path.
-
 ## Safety rules
-- never paste secrets into repository files, issues, PRs or logs;
+- never paste secrets into chat/repository/issues/PRs/logs;
 - never commit `.env`;
-- redact provider responses that echo credentials;
-- rotate any credential accidentally exposed;
-- spike artifacts store only measurements/results, never token values.
+- rotate any accidentally exposed credential;
+- spike artifacts retain measurements, not token values;
+- credentials grant read-only/minimum authority required for each spike.
