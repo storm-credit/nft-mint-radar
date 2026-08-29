@@ -159,8 +159,48 @@ Prior spike/ADR selected hybrid topology with Railway worker + PostgreSQL and Gi
 
 ---
 
+## SPIKE-WL-001 — allowlist platform access — OPEN, Phase 1 blocking for slice 1 source
+### Question
+Can a single-user tool legitimately read *other projects'* currently-open allowlists from PREMINT or a
+peer platform, and does that data cover Robinhood Chain, where the current mint cycle is?
+
+### Hypothesis
+An allowlist opening is strictly earlier than the announcement that reaches any alpha Discord, so if
+third-party read access exists, it is the best Phase 1 discovery source.
+
+### Method
+Public-source research only. No credentials, no paid calls, no scraping. Determine per platform:
+public API existence, whether a non-project third party can enumerate open allowlists, auth and
+partner gating, cost, chain coverage including Robinhood Chain, and whether the platform is still
+operating at all.
+
+### Success
+A named platform where third-party read is possible under its terms, at acceptable cost, covering at
+least one Phase 1 chain with real current activity.
+
+### Failure
+Every platform is partner-gated to project owners, dead, or blind to Robinhood Chain. Failure is a
+real outcome, not a retry condition.
+
+### Cost cap
+Zero. Research only.
+
+### Disposable boundary
+No code. Findings only.
+
+### Decision unlocked
+Slice 1's discovery source. On failure, the fallback is on-chain deploy monitoring, whose own
+feasibility is being checked in the same pass — Robinhood Chain is new enough that a public RPC and
+explorer API cannot be assumed.
+
+### Artifact
+`docs/spikes/SPIKE-WL-001-RESULT.md`
+
+---
+
 ## Current execution order
-**No Phase 1 blocking spike remains.** OpenSea, Telegram and X are all closed.
+OpenSea, Telegram and X are closed. `ADR-012` opened one new blocking spike, `SPIKE-WL-001`, which
+gates slice 1's discovery source.
 
 Freeze reconciliation is complete. Next work is production implementation in the frozen order
 recorded in `docs/PHASE_1_FROZEN_CONFIG.md`. Current state lives in `docs/PROJECT_STATUS.md`.
