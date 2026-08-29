@@ -1,37 +1,85 @@
 # SPIKE-X-001 Result — X discovery access/cost
 
 ## Status
-**PAPER_VALIDATED / OPERATIONAL_BLOCKED_BY_CREDENTIAL_AND_CONSOLE_PRICING**
+**PAPER_VALIDATED_CURRENT / OPERATIONAL_BLOCKED_BY_CREDENTIAL**
 
 No production code was written.
 
-## Verified against current official X documentation
-- X API v2 is pay-per-use with prepaid credits and no monthly minimum.
-- Current endpoint-specific rates are exposed in the Developer Console, not fully fixed in public docs.
-- Filtered Stream supports near-real-time matching, up to 1,000 rules and one pay-per-use connection.
-- Current docs describe approximately 6–7 second P99 stream latency.
-- Recent Search allows up to 450 requests per 15 minutes per app, 100 posts max per request.
-- Billing and rate limits are separate; successful returned posts consume usage, with daily deduplication of the same post.
-- Pay-per-use has a 2 million post-read monthly cap before Enterprise.
+## Current official X facts revalidated — 2026-08-29
+Official X documentation now exposes enough public pricing/access detail to close the old paper-cost ambiguity:
 
-## Result
-Technical feasibility: **PASS**.
-Cost feasibility: **UNRESOLVED** until the user's Developer Console exposes current prices and a spend budget is chosen.
-Operational latency test: **BLOCKED** without an X developer app/Bearer token.
+- X API uses pay-per-usage credits with no subscription/minimum-spend requirement stated in the public docs.
+- public Post reads cost **$0.005 per returned resource** at the observed documentation revision;
+- pay-per-usage is capped at **2,000,000 Post reads/month** before Enterprise;
+- prices can change, so the Developer Console remains the execution-time authority;
+- Filtered Stream is available to Pay-per-use;
+- Filtered Stream supports **1,000 rules/project**, **1 connection**, and core operators;
+- official docs describe approximately **6–7 second P99** Filtered Stream delivery;
+- Recent Search accepts up to **100 Posts/response** and a start time within the last **7 days**;
+- app-only public-data reads use a Bearer Token.
 
-## Provisional decision
-Keep both modes in the adapter contract:
-1. `STREAM_PRIMARY` candidate for official accounts / high-priority keywords when price is acceptable.
-2. `SEARCH_PRIMARY`/fallback for smaller or budget-constrained watchlists.
+Primary references retained for human recheck:
+- `https://docs.x.com/x-api/getting-started/pricing`
+- `https://docs.x.com/x-api/posts/filtered-stream/introduction`
+- `https://docs.x.com/x-api/posts/search-recent-posts`
+- `https://docs.x.com/x-api/getting-started/getting-access`
 
-Do not select the final mode or runtime solely from documentation.
+## Cost model
+For this product, X Post-read spend is driven by returned/delivered resources, not watched-account count by itself.
 
-## Required operational evidence
-- current Developer Console search/stream unit prices;
-- Bearer token configured outside the repo;
-- 10 representative project rules;
-- measured delivered-post count, false positives and observed latency;
-- estimated monthly spend at 100/500/1000 watched accounts.
+```text
+estimated_monthly_post_read_cost = matched_unique_post_reads * current_post_read_unit_cost
+```
+
+At the observed public rate:
+- 1,000 billable Post reads -> $5
+- 4,000 billable Post reads -> $20
+- 10,000 billable Post reads -> $50
+
+These are arithmetic examples, not a prediction of our production volume.
+
+## Bounded operational experiment
+`spikes/x_probe.py` now hard-bounds the initial paid validation:
+
+### Recent Search leg
+- maximum 10 returned Posts;
+- current Post-read cost ceiling: **$0.05**.
+
+### Filtered Stream leg
+- maximum 10 delivered Posts;
+- current Post-read cost ceiling: **$0.05**;
+- temporary rule is removed after the experiment;
+- stream leg refuses to run when pre-existing project stream rules exist, because unrelated rules could deliver additional billable Posts.
+
+### Combined mode
+Current Post-read ceiling: **$0.10**.
+
+The workflow still requires the exact manual confirmation string `I_UNDERSTAND_X_MAY_COST` before any paid call.
+
+## Current decision
+Technical suitability: **PASS ON CURRENT OFFICIAL DOCUMENTATION**.
+
+Provisional production shape if operational validation succeeds:
+
+`FILTERED_STREAM_PRIMARY + RECENT_SEARCH_RECOVERY`
+
+Rationale:
+- Filtered Stream matches the product's low-latency official-account/WL signal requirement;
+- Recent Search is useful for reconnect/catch-up and bounded backfill;
+- both remain behind source budgets and can degrade to X_OPTIONAL if real signal ROI is poor.
+
+This is not frozen until the bounded credentialed run succeeds.
+
+## Operational evidence still required
+- `X_BEARER_TOKEN` configured through GitHub Secret/runtime only;
+- sufficient X API credit for a <= $0.10 Post-read spike;
+- bounded search result observed;
+- Filtered Stream connection/rule lifecycle observed, or a recorded access-specific failure;
+- useful/noise classification of the bounded sample;
+- execution-time Developer Console rate checked against the documented $0.005 assumption;
+- final mode frozen as `STREAM_PRIMARY_WITH_SEARCH_RECOVERY`, `SEARCH_PRIMARY`, or `X_OPTIONAL`.
 
 ## Gate impact
-Phase 1 X source remains `BLOCKED_BY_CREDENTIAL` for operational validation. X may be made optional if cost/access is unacceptable.
+The old **pricing-definition ambiguity is closed**.
+
+Remaining Phase 1 X blocker is now only **credentialed operational evidence + final mode freeze**.
