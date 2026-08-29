@@ -2,12 +2,12 @@
 
 ## Current verdict
 
-**Deep Design v1.1 canonical sync complete / Minimum-Action governance adopted / Harness logical-role architecture synced / Harness schemas v1.1 synced / Eval fixtures synced / Local Action Space audit PASS / OpenSea operational spike CLOSED / Telegram operational spike PASS / X operational spike CLOSED and mode frozen in ADR-010 / all Phase 1 blocking operational spikes complete / cross-system Red Team not yet run**
+**Deep Design v1.1 canonical sync complete / Minimum-Action governance adopted / Harness logical-role architecture synced / Harness schemas v1.1 synced / Eval fixtures synced / Local Action Space audit PASS / OpenSea operational spike CLOSED / Telegram operational spike PASS / X operational spike CLOSED and mode frozen in ADR-010 / all Phase 1 blocking operational spikes complete / cross-system Red Team complete with P0 = 0**
 
 Current gate: **`FREEZE_PENDING`**.
 
-Production coding remains blocked until the full cross-system Red Team returns P0 = 0
-and freeze reconciliation completes.
+Cross-system Red Team ran 2026-08-29 and closed every P0. Production coding remains blocked only
+until freeze reconciliation completes.
 
 ---
 
@@ -62,6 +62,19 @@ Conversation history is not source of truth.
 
 ### Derived-artifact synchronization
 Current known P0 stale-derived-artifact blocker: **0**.
+
+Cross-system Red Team 2026-08-29 (`docs/RED_TEAM_2026-08-29.md`): 5 P0 raised, 4 accepted, 1
+downgraded to P1, 6 P1 accepted, **all closed by PATCH**, unresolved P0 = 0. No NEW DESIGN was
+required. Derived artifacts were synchronized in the same change: `HARNESS_SCHEMAS` gained the
+`ActionLinkAssessment` CTA carrier, `urgency_corroboration`, and opportunity-state hard rules;
+`EVAL_FIXTURES` gained `F29`-`F32`.
+
+Design changes worth carrying into implementation:
+- `unavailable` evidence is not `current` evidence for ACTION/URGENT/CTA;
+- a single account-based official source cannot escalate a new or shortened deadline to URGENT;
+- `Opportunity.state` is a finite enum with always-legal `CANCELLED`/`EXPIRED`;
+- the outbox has an explicit delivery state machine; a null `sent_at` never authorizes a resend;
+- `official_action_url` is never renderable; only an `ActionLinkAssessment` reaches the user.
 
 Cross-artifact consistency audit on 2026-08-29 (canonical docs vs `spikes/` runners vs `.github/workflows/`)
 found and closed two doc-vs-code contradictions: an X Recent Search cap that was documented as enforced but
@@ -140,8 +153,8 @@ All three Phase 1 blocking operational spikes are closed: OpenSea, Telegram, X.
 No user-owned credential is outstanding. `TELEGRAM_BOT_TOKEN` and `X_BEARER_TOKEN` are configured
 and both have been exercised against live providers.
 
-Remaining work before coding is analysis, not credentials:
-1. full cross-system Red Team, P0 must be 0;
+Remaining work before coding:
+1. ~~full cross-system Red Team, P0 must be 0~~ — done 2026-08-29, P0 = 0;
 2. freeze reconciliation across derived artifacts;
 3. then `PHASE_1_CODING_READY`.
 
@@ -185,14 +198,15 @@ Remaining work before coding is analysis, not credentials:
 ---
 
 ## Next action
-All Phase 1 blocking operational evidence is collected. Production coding is still **not**
-authorized.
+Operational evidence is complete and the cross-system Red Team is closed at P0 = 0.
+Production coding is still **not** authorized.
 
-1. run the full cross-system Red Team from `CLAUDE.md` section 10 and classify P0/P1/P2;
-2. resolve any P0 by KEEP/PATCH/CUT; NEW DESIGN only for a real structural hole;
-3. complete freeze reconciliation in the start gate section G;
-4. if P0 = 0, set `PHASE_1_CODING_READY` and implement in the frozen order.
+Remaining, in order:
+1. freeze reconciliation, start gate section G — verify no derived schema/prompt/fixture/spike
+   mapping is stale after the Red Team patches, freeze the Phase 1 source/runtime configuration,
+   confirm no unresolved P0 provider ambiguity;
+2. then set `PHASE_1_CODING_READY` and implement in the frozen order.
 
-The first Red Team question to carry in deliberately: X signal yield is unproven, so any
-design that silently assumes X will surface mints early is making a claim the evidence
-does not support.
+Carry into implementation: X signal yield is unproven. `METRICS_SLO` already measures source ROI by
+median unique lead time, so this resolves as data rather than as an assumption — but no design may
+quietly depend on X being first.

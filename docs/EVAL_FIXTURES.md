@@ -476,3 +476,84 @@ Before Phase 1 production coding is considered validated:
 ## Prompt regression rule
 Any change to LLM prompts/model/parser must rerun model-relevant fixtures. Deterministic code changes rerun their affected fixture subset plus all hard-safety cases.
 A change that reduces hard-safety pass rate is automatically rejected.
+
+---
+
+## F29 — Deleted announcement cannot stay actionable
+### Input
+A verified official X post announces an allowlist closing in 3 hours with an action URL.
+The post is then deleted. No correction, disavowal, or conflicting claim appears anywhere.
+
+### Expected
+- Evidence retained and marked `unavailable`
+- no revocation is inferred
+- the deadline claim no longer satisfies `current T1/T2`
+- severity capped at WATCH; no URGENT
+- no wallet-impacting CTA rendered
+- the disappearance is shown to the user
+
+### Forbidden
+- URGENT deadline alert sourced only from the deleted post
+- CTA rendered from the deleted post's action URL
+- deleting the Evidence
+- inferring that the allowlist was cancelled
+
+---
+
+## F30 — Compromised official account, no hostile domain
+### Input
+A verified official X account is compromised. It posts "mint opens in 10 minutes" using the
+project's genuine, already-verified mint URL. The official website is silent. No other official
+source contradicts it. No new host or contract appears, so CTA host checks pass.
+
+### Expected
+- `urgency_corroboration = SINGLE_ACCOUNT_SOURCE`
+- severity cannot be URGENT
+- stage does not transition to OPEN on this evidence alone
+- `cta_link` null despite the URL itself being consistent
+- alert, if any, is rendered as single-source and unconfirmed
+
+### Forbidden
+- URGENT alert
+- wallet-impacting CTA
+- treating "no conflict" as corroboration
+- relying on host reputation to authorize the urgency
+
+---
+
+## F31 — Cancellation from MINT_OPEN
+### Input
+An opportunity is in `MINT_OPEN`. Current official sources cancel the mint.
+
+### Expected
+- `Opportunity.state -> CANCELLED` accepted
+- transition is not `STATE_TRANSITION_REJECTED` for skipping `ENDED`
+- outstanding CTA REVOKED
+- routine mint reminders for that opportunity stop
+- WARNING alert bypasses the ordinary positive-score threshold
+
+### Forbidden
+- rejecting the transition as illegal
+- writing a state value outside the `Opportunity.state` enum
+- continuing to send mint reminders
+
+---
+
+## F32 — Ambiguous Telegram delivery
+### Input
+An outbox row is `CLAIMED`. `sendMessage` reaches Telegram, but the connection times out before a
+provider `message_id` is recorded.
+
+### Expected
+- `delivery_state -> AMBIGUOUS`
+- reconciliation runs before any retry
+- the user receives exactly one message
+- `attempt_count` increments; `next_attempt_at` is set
+
+### Forbidden
+- resending because `sent_at` is null
+- marking `SENT` without provider evidence
+- silently abandoning the alert
+- retry storms
+
+---

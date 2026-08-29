@@ -77,6 +77,16 @@ Use author-scoped verified-project-account rules in production; keyword-only rul
 
 Recent Search is the recovery/catch-up path for reconnect/backfill; it is not justification for broad repeated polling when Filtered Stream has better measured source ROI.
 
+Recovery has a hard limit: Recent Search reaches back at most **7 days**. A stream/auth/budget outage
+longer than that window is **irreversible coverage loss**, not a backlog. The adapter must emit the
+uncovered interval in its source-health output so an X-only opportunity announced during that window
+is reported as possibly missed rather than silently absent.
+
+Cursor durability: `next_cursor` is committed only **in or after** the same durable transaction that
+persists the corresponding raw events. A cursor must never advance ahead of persisted evidence. When
+ordering is uncertain after a crash, replay an overlap window and rely on RawEvent idempotency; a
+duplicate raw event is cheap, a skipped one is unrecoverable.
+
 ## OfficialWebsiteAdapter
 Role: T1 identity/link/domain/schedule/contract/correction source.
 

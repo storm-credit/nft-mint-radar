@@ -179,7 +179,14 @@ CampaignStageStateOutput:
   reason: string
 ```
 
-Hard rule: stage price/time/max-per-wallet facts remain stage-specific and must not be collapsed into one campaign-wide value when they differ.
+Hard rules:
+- stage price/time/max-per-wallet facts remain stage-specific and must not be collapsed into one
+  campaign-wide value when they differ;
+- `opportunity_state.previous/proposed` take values from the `Opportunity.state` enum in
+  `DEEP_DESIGN.md`, never a free string;
+- `CANCELLED` from any pre-`ENDED` state and `EXPIRED` from any actionable state are always legal
+  targets and must not be returned as `REJECT`. Rejecting them would leave a stale actionable
+  opportunity alive, which `F18` forbids.
 
 ---
 
@@ -346,17 +353,26 @@ DecisionOutput:
   next_user_action: string|null
   missing_information: [string]
   material_change_keys: [string]
-  cta_link: VerifiedLink|null
+  cta_link: ActionLinkAssessment|null
   cta_safety_state: CTASafetyState
   recheck_at: datetime_utc|null
+  urgency_corroboration: SINGLE_ACCOUNT_SOURCE|CORROBORATED|NOT_APPLICABLE
   reasons: [string]
 ```
 
 Hard rules:
+- `cta_link` carries an `ActionLinkAssessment`, never a bare `VerifiedLink`. A
+  `MintStage.official_action_url` or `Opportunity.official_action_url` is source evidence and is not
+  renderable; it reaches the user only after passing through an assessment;
 - `cta_link` must be null unless wallet-impacting CTA safety is `CONSISTENT`;
 - `QUARANTINED`/`REVOKED` => no APPLY_WL/PREPARE/MINT_RECHECK CTA;
 - Risk >=70 => action cannot be APPLY_WL/PREPARE/MINT_RECHECK;
-- LOW evidence => action cannot exceed WATCH.
+- LOW evidence => action cannot exceed WATCH;
+- `urgency_corroboration = SINGLE_ACCOUNT_SOURCE` => `severity` cannot be `URGENT` and `cta_link`
+  must be null. A newly appeared or shortened deadline, or a transition to `OPEN`, resting only on
+  one account-based official source cannot escalate. See `DEEP_DESIGN.md` single-source limit;
+- evidence whose source is `unavailable` does not count as current evidence for `ACTION`/`URGENT`,
+  for a stage transition, or for a CTA.
 
 ---
 
@@ -383,10 +399,17 @@ TelegramRenderOutput:
   fingerprint: string
   contains_cta: boolean
   cta_safety_state: CONSISTENT|NONE
+  single_source_unconfirmed: boolean
 ```
+
+The renderer receives the CTA only as `DecisionOutput.cta_link`, which is an `ActionLinkAssessment`.
+It never reads `official_action_url` from a stage or opportunity. When
+`single_source_unconfirmed` is true the text must say the claim rests on one unconfirmed official
+account and must contain no wallet-impacting CTA.
 
 Forbidden:
 - unverified/quarantined/revoked wallet-impacting URL as CTA;
+- rendering any URL taken directly from `official_action_url`;
 - secrets/raw auth token;
 - auto transaction/signature/social action represented as completed.
 

@@ -314,3 +314,19 @@ Send Telegram only when one of these occurs:
 A wallet-impacting CTA is included only when `action_link_safety=CONSISTENT` under current evidence.
 
 Do not send routine 'nothing found' spam.
+
+---
+
+## Phase 1 runtime coverage boundary — NOT_READ_IN_PHASE_1
+This document names sources that Phase 1 does **not** ingest at runtime. Naming a source here is not
+coverage. The following are `NOT_READ_IN_PHASE_1` unless they are reached through an existing adapter
+path such as an official website/docs crawl:
+
+- Magic Eden and other chain-native launchpads
+- Farcaster and other community feeds
+- official GitHub repositories
+- niche community surfaces without a supported read contract
+
+Consequence, stated plainly: a mint that appears **only** on one of these surfaces produces no
+candidate in Phase 1. That is an accepted coverage gap, not a defect, and it must be visible in
+miss-reason reporting as `coverage` rather than being attributed to a parser or scoring failure.

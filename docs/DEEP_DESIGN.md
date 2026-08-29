@@ -222,7 +222,7 @@ Opportunity:
   id: string
   project_id: string
   type: ALLOWLIST|RAFFLE|HOLDER_MINT|FREE_MINT|PAID_MINT|PUBLIC_MINT|AIRDROP|LEGACY_HOLDER_ACCESS|OTHER
-  state: string
+  state: RUMORED|DISCOVERED|REGISTRATION_PENDING|REGISTRATION_OPEN|REGISTRATION_CLOSED|RESULTS_PENDING|MINT_SCHEDULED|MINT_OPEN|ENDED|CANCELLED|EXPIRED
   campaign_id: string|null
   stage_id: string|null
   registration_open_at: datetime_utc|null
@@ -312,8 +312,20 @@ Notification:
   action: WATCH|APPLY_WL|PREPARE|MINT_RECHECK|AVOID|NO_ALERT
   material_change_keys: [string]
   rendered_payload_hash: string
+  delivery_state: PENDING|CLAIMED|SENT|AMBIGUOUS|FAILED|ABANDONED
+  attempt_count: integer
+  next_attempt_at: datetime_utc|null
+  claimed_until: datetime_utc|null
+  provider_message_id: string|null
+  last_error: string|null
   sent_at: datetime_utc|null
 ```
+
+A null `sent_at` alone never authorizes a resend. A provider timeout after a possible delivery moves
+the row to `AMBIGUOUS`, which is reconciled before any retry. `SPIKE-TG-001` confirmed the provider
+returns an observable `message_id` on success, so `SENT` is recorded from provider evidence rather
+than inferred. Telegram is not exactly-once transport; this state machine, not the provider, is what
+prevents both duplicate alerts and silently lost ones.
 
 ## 2.13 VerifiedLink
 ```yaml
@@ -327,6 +339,13 @@ VerifiedLink:
 ```
 
 `VerifiedLink.verification_state` describes identity/relation evidence. Wallet-impacting action safety is separate.
+
+Consequently `official_action_url: VerifiedLink` on `MintStage` and `Opportunity` holds
+**source/identity evidence only and is never directly renderable**. The only renderable
+wallet-impacting URL is one carried by an `ActionLinkAssessment` whose `safety_state = CONSISTENT`.
+Decision and notification payloads carry that assessment or its id, never the raw `VerifiedLink`.
+This keeps the CTA gate in the schema rather than only in prose, so an implementation cannot reach a
+renderable action URL without passing through the assessment.
 
 ## 2.14 ActionLinkAssessment
 ```yaml
@@ -410,6 +429,12 @@ NormalizedEvent:
 - same native id + new content hash -> CORRECTION + new Evidence;
 - disappeared source -> retain Evidence + mark unavailable; do not infer revocation without correction/disavowal.
 
+`unavailable` evidence is **not** `current` evidence. Evidence whose source has disappeared cannot
+satisfy a `current T1/T2` requirement for `ACTION`/`URGENT` severity, for a stage transition, or for
+any wallet-impacting CTA. The claim degrades to `WATCH` with the disappearance shown, until a current
+source corroborates it again or an explicit correction/disavowal resolves it. This does not infer
+revocation; it refuses to treat a vanished source as present evidence.
+
 ## Dedup
 Exact key when available:
 `source_id + source_native_id + content_hash`.
@@ -449,6 +474,21 @@ For wallet-impacting CTA (`APPLY_WL`, `MINT_RECHECK`, connect/mint/register URL)
 ## Date/deadline
 One current T1/T2 source can make a date actionable when no conflict exists.
 If current official sources conflict -> CONFLICTED; exact urgent CTA is suppressed until resolved.
+
+### Single-source limit on urgency escalation
+Conflict detection does not cover **silence**. A compromised official account can post a false
+deadline that no other source contradicts, because the canonical surface is merely quiet. Therefore:
+
+- one current T1/T2 source may make a date actionable at `WATCH`/`ACTION` level, which preserves the
+  lead time this product exists to deliver;
+- but a **newly appeared or shortened** deadline, or a stage transition to `OPEN`, that rests on a
+  single **account-based** official source (X/Telegram/Discord post) must not by itself produce
+  `URGENT` severity or a wallet-impacting CTA;
+- escalation requires one of: a second independent official surface (site/docs/marketplace), on-chain
+  evidence, or the same claim present on the canonical official surface;
+- until then the alert is rendered as single-source and unconfirmed, with the CTA suppressed.
+
+This is a deterministic gate, not a scoring nudge.
 
 ## Holder/snapshot
 Requires current T1/T2 eligibility claim + collection/identity relation.
@@ -490,6 +530,15 @@ Canonical action flow:
 `RUMORED -> DISCOVERED -> REGISTRATION_PENDING -> REGISTRATION_OPEN -> REGISTRATION_CLOSED -> RESULTS_PENDING -> MINT_SCHEDULED -> MINT_OPEN -> ENDED`
 
 Alternative holder/direct flows can skip registration states.
+
+`CANCELLED` is reachable from **every** pre-`ENDED` state on current official cancellation evidence.
+`EXPIRED` is reachable from every actionable state when the deadline passes with no result evidence.
+Neither is an illegal transition, and neither may be rejected for skipping intermediate states.
+Entering `CANCELLED` revokes any outstanding CTA and stops routine reminders for that opportunity.
+
+Without this, `F18 — Official cancellation` cannot be satisfied: a cancellation would either be
+rejected as an illegal transition or written as an uncontracted value, leaving a stale actionable
+opportunity alive.
 
 User-specific `WON|WAITLISTED|LOST` lives in UserProgress, not global Opportunity state.
 
@@ -665,6 +714,15 @@ Suppress:
 
 ## Fingerprint
 `project_id | campaign_id | stage_id | opportunity_id | notification_class | normalized_action | deadline_bucket | material_version`
+
+Bucket and version semantics are deterministic and shared by every code path that builds a fingerprint:
+- `deadline_bucket` and `time_bucket` are derived from the **canonical claim time in UTC**, never from
+  observation/fetch time, so two sources reporting the same deadline collapse to one fingerprint;
+- both bucket to a fixed grid; a claim time exactly on a boundary rounds down;
+- `material_version` starts at 1 per fingerprint identity and increments **only** when a key listed
+  under `Material re-alert` actually changes;
+- new Evidence that changes no material key (for example a `CORRECTION` with identical claims) does
+  not increment `material_version` and therefore does not re-alert.
 
 ## Material re-alert
 Re-alert on:

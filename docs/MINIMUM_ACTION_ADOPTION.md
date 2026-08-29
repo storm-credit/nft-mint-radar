@@ -255,7 +255,9 @@ Minimum Action 적용이 완료됐다고 말하려면:
 
 ## 현재 적용 판정
 
-`ADOPTED_IN_DESIGN / DERIVED-ARTIFACT_SYNC_REQUIRED`
+`ADOPTED_IN_DESIGN`
+
+현재 동기화 상태의 authority는 이 문서가 아니라 `docs/PROJECT_STATUS.md`다. 아래 항목은 이 문서를 작성한 시점의 기록이며, 그 시점 이후 해소되었다.
 
 이 문서를 만든 시점의 확인 사항:
 - ADR-007/008은 accepted 상태다.

@@ -60,7 +60,9 @@ Before evaluating:
 
 ---
 
-## D. Red Team
+## D. Red Team — design-time sweep (preliminary)
+These boxes record the **design-time** blind-spot sweep only. They are **not** the cross-system Red
+Team required by section H. Section H is not satisfied by this list.
 - [x] source coverage / OpenSea completeness limitation
 - [x] Robinhood Chain target-pattern gap
 - [x] official-account compromise / CTA substitution
@@ -76,6 +78,13 @@ Before evaluating:
 - [x] God Agent / Tool Swamp / Agent Explosion
 - [x] Shadow Authority / Stale Derived Artifact
 - [x] current P0 design findings closed by targeted PATCH.
+
+### Cross-system Red Team — required for coding authorization
+- [x] executed 2026-08-29 across coverage, safety/manipulation, runtime/state/cost, and governance;
+- [x] findings classified P0/P1/P2 with file:line evidence;
+- [x] every P0 closed by targeted PATCH, and derived artifacts synchronized in the same change;
+- [x] result retained in `docs/RED_TEAM_2026-08-29.md`;
+- [x] current unresolved P0 = **0**.
 
 ---
 
@@ -169,7 +178,13 @@ After Telegram/X pass or a named item is explicitly waived:
 ---
 
 ## H. Coding authorization
-Only after the remaining E + G items are complete (or explicit named ADR waiver) set:
+Only after **all** of the following are true (or an explicit named ADR waiver exists) set:
+
+1. remaining E items complete;
+2. remaining G items complete;
+3. the **cross-system Red Team** in section D has run to completion with unresolved P0 = 0.
+
+Section D's design-time sweep alone never satisfies condition 3.
 
 `PHASE_1_CODING_READY`
 
