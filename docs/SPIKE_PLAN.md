@@ -14,31 +14,23 @@ Rules:
 
 ---
 
-## SPIKE-MARKET-001 — OpenSea live coverage/mapping — Phase 1 BLOCKING
-### Question
-Does live OpenSea data provide useful structured discovery/stage evidence across **Ethereum + Base + Robinhood Chain**, while remaining incomplete enough that outside discovery is still necessary?
+## SPIKE-MARKET-001 — OpenSea live coverage/mapping — CLOSED
+See `docs/spikes/SPIKE-MARKET-001-RESULT.md`.
 
-### Method
-1. Use disposable probe with `OPENSEA_API_KEY`.
-2. Fetch upcoming/listed drops across target chains where API supports filtering/enumeration.
-3. Fetch details for >=10 representative drops.
-4. Map to `Project -> MintCampaign -> MintStage -> Opportunity`.
-5. Verify stage-specific allocation/time/max/price state.
-6. Include multi-stage allowlist/public case; include ERC-20-priced case if present.
-7. Compare against a small manual/off-OpenSea discovery sample.
+Observed live through GitHub Actions:
+- instant free key issuance works;
+- `ethereum`, `base`, `robinhood` chain keys resolve;
+- combined/per-chain calls succeed;
+- 10/10 detail sample succeeded;
+- multi-stage GTD/FCFS/holder/free/public structures observed;
+- Base `upcoming` returned zero during a period with active Base mint surfaces.
 
-### Success
-- >=10 real samples map without source-specific core-schema hacks;
-- multi-stage values remain stage-specific;
-- FREE/KNOWN/UNKNOWN/VARIABLE price states map correctly;
-- missing coverage is measurable and OpenSea is not treated as completeness authority.
+Decision:
+- OpenSea is a valuable structured discovery/verification source;
+- OpenSea `upcoming` is not a completeness authority;
+- outside official/campaign/on-chain discovery remains required.
 
-### Failure
-- live data cannot represent target opportunities without material domain redesign;
-- target-chain support/fields are materially insufficient for useful P0 structured evidence.
-
-### Artifact
-`docs/spikes/SPIKE-MARKET-001-RESULT.md`
+No longer Phase 1 blocking.
 
 ---
 
@@ -46,12 +38,25 @@ Does live OpenSea data provide useful structured discovery/stage evidence across
 ### Question
 Can one action alert be delivered safely and observably to the user's Telegram with local dedup/outbox semantics?
 
-### Method
-1. user-created bot/token only via secret/runtime;
-2. user starts bot; establish chat target;
-3. send one dry-run Korean message with safe placeholder/CONSISTENT link state and correlation test id;
-4. observe provider result;
-5. exercise retry/dedup behavior without creating a notification storm.
+### Current readiness
+Credential-path smoke already ran and proved:
+- workflow/probe path is ready;
+- `TELEGRAM_BOT_TOKEN` was absent at the observed run;
+- no network send occurred without the secret.
+
+### User prerequisite
+1. create a bot with `@BotFather`;
+2. store only `TELEGRAM_BOT_TOKEN` as GitHub/runtime secret;
+3. send `/start` once.
+
+`TELEGRAM_CHAT_ID` is optional for a clean test bot; the disposable probe can resolve the latest private chat through `getUpdates` when no webhook is configured.
+
+### Method after credential exists
+1. rerun guarded disposable probe;
+2. resolve target;
+3. send one Korean no-wallet-action dry-run;
+4. observe provider response/message id;
+5. verify local correlation/dedup behavior.
 
 ### Success
 - user sees one intended dry-run;
@@ -64,38 +69,55 @@ Can one action alert be delivered safely and observably to the user's Telegram w
 
 ---
 
-## SPIKE-X-001 — X discovery access/cost — Phase 1 BLOCKING unless X becomes optional
+## SPIKE-X-001 — X discovery access/noise — Phase 1 BLOCKING unless X becomes optional
 ### Question
-Can official-project/reactivation/WL signals be detected with acceptable latency/noise and bounded spend?
+Can official-project/reactivation/WL signals be detected with acceptable useful/noise ratio using a bounded Pay-per-use configuration?
 
-### Candidate modes
-- STREAM_PRIMARY
-- SEARCH_PRIMARY
-- HYBRID
-- X_OPTIONAL
+### Paper validation now closed
+Current official documentation observed 2026-08-29 states:
+- Post read: `$0.005/resource`;
+- Pay-per-use has no subscription/minimum-spend requirement stated in public docs;
+- Filtered Stream is available to Pay-per-use;
+- Filtered Stream: 1,000 rules/project, 1 connection, core operators;
+- approximate 6–7 second P99 stream delivery;
+- pay-per-use cap: 2,000,000 Post reads/month before Enterprise;
+- Bearer Token supports app-only public-data reads.
 
-### Method
-1. record current Developer Console price/budget without exposing keys;
-2. disposable API test only;
-3. test representative official accounts + narrow keywords;
-4. measure delivered volume, useful/noise ratio, observed latency/reconnect/catch-up;
-5. project spend for realistic watchlist sizes;
-6. compare stream vs 5/10/15m search polling if available.
+Prices are rechecked in Developer Console at execution/production time.
+
+### Provisional mode
+`FILTERED_STREAM_PRIMARY + RECENT_SEARCH_RECOVERY`
+
+Not frozen until credentialed observation succeeds.
+
+### Bounded paid method
+The disposable probe hard-caps the initial test at the observed public rate:
+
+1. Recent Search: <=10 returned Posts -> <= `$0.05` Post-read cost.
+2. Filtered Stream: <=10 delivered Posts -> <= `$0.05` Post-read cost.
+3. Combined mode Post-read ceiling -> <= **`$0.10`**.
+4. Stream refuses to run if any pre-existing stream rule exists, preventing unrelated rules from creating unbounded test reads.
+5. Temporary stream rule is removed after the experiment.
+6. Any paid call still requires exact manual opt-in `I_UNDERSTAND_X_MAY_COST`.
 
 ### Success
-- p95 official-target detection <=10m or clearly acceptable degraded mode;
-- spend is predictably bounded under approved budget;
-- no prohibited scraping;
-- MVP watchlist capacity is adequate.
+- Bearer-token access succeeds;
+- search sample can be classified into useful/noise;
+- stream rule lifecycle/connection succeeds, or a precise access restriction is observed;
+- execution-time rate matches or supersedes the documented `$0.005` assumption;
+- final mode can be frozen as `STREAM_PRIMARY_WITH_SEARCH_RECOVERY`, `SEARCH_PRIMARY`, or `X_OPTIONAL`.
 
 ### Failure
-- access/tier unavailable;
-- spend materially exceeds budget;
-- retrieval noise makes spend unpredictable;
-- latency fails practical alert goal.
+- credential/access unavailable;
+- stream unavailable for actual account despite current Pay-per-use documentation;
+- signal quality is too poor for the cost;
+- provider terms/rates materially invalidate the cost model.
 
-### Safety
-X probe requires explicit acknowledgment before any potentially charged call.
+### Current blocker
+No-cost GitHub Actions preflight confirmed:
+- `spikes/x_probe.py` compiles;
+- `X_BEARER_TOKEN` is currently absent from Actions secret context;
+- paid API calls attempted: 0.
 
 ### Artifact
 `docs/spikes/SPIKE-X-001-RESULT.md`
@@ -131,16 +153,15 @@ Prior spike/ADR selected hybrid topology with Railway worker + PostgreSQL and Gi
 ---
 
 ## Current execution order
-Use the smallest actionable order based on current blockers/credentials:
-1. `SPIKE-MARKET-001` — OpenSea
-2. `SPIKE-TG-001` — Telegram
-3. `SPIKE-X-001` — X
+Only two Phase 1 blocking spikes remain:
+1. `SPIKE-TG-001` — Telegram, after `TELEGRAM_BOT_TOKEN` + `/start`;
+2. `SPIKE-X-001` — X, after developer app/credits + `X_BEARER_TOKEN`.
 
 Campaign/Dune/Discord do not block Phase 1 unless a future ADR makes them mandatory.
 
 ## Phase 1 coding gate
 Before production Phase 1 code:
-- OpenSea live mapping resolved;
+- OpenSea live mapping resolved — DONE;
 - Telegram delivery/config resolved;
 - X resolved or explicitly optional by ADR;
 - runtime already resolved;
