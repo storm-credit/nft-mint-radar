@@ -79,9 +79,18 @@ def resolve_chat_id(token: str):
                 "text_preview": (message.get("text") or "")[:40],
             }
 
+    # Report the bot's public username so the operator knows which bot to open.
+    # getMe returns public bot identity only; it never echoes the token.
+    me = telegram_json(token, "getMe")
+    bot_username = None
+    if me.get("ok"):
+        bot_username = (me.get("body", {}).get("result", {}) or {}).get("username")
+
     return None, "no-private-chat", {
         "error": "no private bot conversation found; send /start to the bot and rerun",
         "update_count": len(rows) if isinstance(rows, list) else None,
+        "bot_username": bot_username,
+        "open_this_bot": f"https://t.me/{bot_username}" if bot_username else None,
     }
 
 
