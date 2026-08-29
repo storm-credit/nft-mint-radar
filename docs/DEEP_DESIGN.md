@@ -371,6 +371,33 @@ ActionLinkAssessment:
 
 A T1 post does not automatically make a new CTA `CONSISTENT`.
 
+## 2.15 ContractIdentity
+`Project.contracts` referenced this type before it was defined. Defined 2026-08-29 during slice 1,
+derived entirely from the existing Contract address rule in section 5 rather than invented.
+
+```yaml
+ContractIdentity:
+  chain: ChainIdentity
+  address: string
+  relation_state: UNVERIFIED|CORROBORATED|OFFICIAL|CONFLICTED|REVOKED
+  onchain_existence: CONFIRMED|NOT_FOUND|UNKNOWN
+  evidence_ids: [string]
+  first_seen_at: datetime_utc
+  checked_at: datetime_utc
+```
+
+`relation_state` and `onchain_existence` answer two different questions and must never be collapsed:
+- `relation_state` is whether current official/corroborated project evidence links this contract to
+  this project;
+- `onchain_existence` is whether T0 confirms the address exists on the expected chain.
+
+The Contract address rule requires **both**: `relation_state = OFFICIAL` demands corroborated project
+evidence *and* `onchain_existence = CONFIRMED` on the expected chain. An address that exists on chain
+proves nothing about who owns it, and a project announcement proves nothing about deployment.
+
+`address` is stored normalized and always paired with its `chain`. A bare address without a chain is
+not an identity, because the same address can exist on several EVM chains with different owners.
+
 ---
 
 # 3. Project identity and merge/split
@@ -426,6 +453,28 @@ NormalizedEvent:
   source_time: datetime_utc|null
   confidence: LOW|MEDIUM|HIGH
 ```
+
+## NormalizedClaim
+`NormalizedEvent.claims` referenced this type before it was defined. Defined 2026-08-29 during
+slice 1, derived from vocabulary the document already uses rather than invented.
+
+```yaml
+NormalizedClaim:
+  claim_key: string
+  normalized_value: any
+  is_primary: boolean
+  confidence: LOW|MEDIUM|HIGH
+```
+
+`claim_key` and `normalized_value` mirror the same two fields on `Evidence` deliberately: a claim is
+the pre-persistence form of what becomes Evidence once it carries source attribution, trust tier and
+verification state. Keeping the names identical prevents a silent mapping layer between them.
+
+`is_primary` exists because the notification fingerprint in section 11 keys on `primary_claim`;
+without it, nothing on the event says which claim that is.
+
+A claim carries no trust tier and no verification state. Those belong to Evidence, because they are
+properties of *who said it*, not of the claim itself.
 
 ## Time semantics
 - source/published time = source assertion;

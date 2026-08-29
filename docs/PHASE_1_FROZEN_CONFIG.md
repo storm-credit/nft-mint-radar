@@ -26,6 +26,22 @@ Not yet activated. No production deployment has occurred, and none is authorized
 Railway outbound/runtime activation remains an open pre-deployment check, listed as non-blocking in
 the start gate section F.
 
+## Implementation stack
+**Python, targeting 3.11+.** Recorded 2026-08-29 when slice 1 started, because no document had frozen
+a language and one was needed.
+
+Rationale, in order of weight: the disposable spikes that produced every operational measurement in
+this project are Python, so the team already reads it here; `.gitignore` was already written for a
+Python project; Railway supports it as a first-class runtime under `ADR-006`; and the deterministic
+hot path needs no capability Python lacks.
+
+3.11+ rather than the newest release, so the Railway image is not constrained by a version that may
+not be available there. Local development on a newer interpreter is fine as long as no
+newer-than-3.11 syntax is used.
+
+This is an implementation choice consistent with `ADR-006`, not a competing decision. If it ever
+becomes contested, an ADR supersedes this entry.
+
 ## Persistence
 PostgreSQL with append-only Evidence and a transactional outbox. Owner: `ADR-003`.
 
