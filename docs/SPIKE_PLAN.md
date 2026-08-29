@@ -162,8 +162,8 @@ Prior spike/ADR selected hybrid topology with Railway worker + PostgreSQL and Gi
 ## Current execution order
 **No Phase 1 blocking spike remains.** OpenSea, Telegram and X are all closed.
 
-Remaining work is freeze reconciliation, then production implementation in the frozen order recorded
-in `docs/PHASE_1_FROZEN_CONFIG.md`.
+Freeze reconciliation is complete. Next work is production implementation in the frozen order
+recorded in `docs/PHASE_1_FROZEN_CONFIG.md`. Current state lives in `docs/PROJECT_STATUS.md`.
 
 Campaign/Dune/Discord do not block Phase 1 unless a future ADR makes them mandatory.
 

@@ -311,7 +311,10 @@ Send Telegram only when one of these occurs:
 - risk grade materially worsens
 - WL result/mint window changes
 
-A wallet-impacting CTA is included only when `action_link_safety=CONSISTENT` under current evidence.
+A wallet-impacting CTA is included only when an `ActionLinkAssessment` reaches
+`safety_state = CONSISTENT` under current evidence, and it reaches the user only as
+`DecisionOutput.cta_link`. A stage's or opportunity's `official_action_url` is source evidence and is
+never rendered directly.
 
 Do not send routine 'nothing found' spam.
 

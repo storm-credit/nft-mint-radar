@@ -162,12 +162,6 @@ The Phase 1 hot path is deterministic-first. LLM use is reserved for narrow ambi
 
 See [`docs/PROJECT_STATUS.md`](docs/PROJECT_STATUS.md) for the source of truth.
 
-Current high-level gate:
-
-```text
-FREEZE_PENDING / PRODUCTION CODING BLOCKED
-```
-
 Completed:
 - Deep Design v1.1 canonical sync
 - Telegram operational spike (PASS)

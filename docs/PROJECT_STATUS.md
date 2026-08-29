@@ -12,8 +12,8 @@ Cross-system Red Team ran 2026-08-29 and closed every P0. Freeze reconciliation 
 day (`docs/FREEZE_RECONCILIATION_2026-08-29.md`) and the Phase 1 configuration is frozen
 (`docs/PHASE_1_FROZEN_CONFIG.md`).
 
-This file is the only place current gate state is stated. Other documents point here rather than
-restating it.
+Current state is stated here and, as a dated decision record, in
+`docs/PRODUCTION_CODING_START_GATE.md`. No other document restates it — they point here.
 
 ---
 
@@ -179,7 +179,12 @@ across derived artifacts, and the Phase 1 configuration freeze. Nothing blocks i
 ## Coding policy
 
 ### Production feature code
-**BLOCKED.**
+**AUTHORIZED for Phase 1** as of 2026-08-29, in the frozen implementation order in
+`docs/PHASE_1_FROZEN_CONFIG.md`. Later phases remain out of scope; designing their interfaces is
+allowed, implementing their behavior is not.
+
+The regression rule still applies: if new evidence invalidates a frozen assumption, mark the affected
+artifacts STALE, stop the impacted path, and re-enter only the affected gate criteria.
 
 ### Disposable technical spikes
 **UNBLOCKED.** They must not become production code accidentally.
