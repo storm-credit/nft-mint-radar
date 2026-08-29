@@ -1,10 +1,10 @@
 # SPIKE-CHAIN-001 Result — On-chain discovery feasibility
 
 ## Status
-**INFRASTRUCTURE VIABLE / DECISION BLOCKED ON AN UNRESOLVED TIMING QUESTION**
+**DETECTION MEASURED AND WORKING / EARLINESS STILL UNMEASURED**
 
 Opened by `ADR-012` as the fallback discovery path if allowlist-platform APIs prove inaccessible.
-Research only, zero cost, no code.
+Research plus one live keyless probe run. Zero cost.
 
 ## Question
 Is on-chain contract-deployment and first-mint monitoring buildable today for Ethereum, Base and
@@ -80,7 +80,63 @@ one chain we care most about. "On-chain is earliest" may collapse to "on-chain i
 
 ---
 
-## The question that decides it — UNRESOLVED
+## MEASURED 2026-08-29 — run `33265757917`
+
+First live run of `spikes/onchain_probe.py` via GitHub Actions. Public RPCs only, no keys, no cost.
+294 RPC calls total across three chains.
+
+### Robinhood Chain — detection works, and the volume is the finding
+
+| Measurement | Value |
+|---|---|
+| blocks scanned | 3,000 |
+| chain time covered | **301 seconds** (~5 minutes) |
+| observed block time | 0.1 s, matching the documented ~100 ms |
+| **distinct minting contracts** | **240** |
+| total mint events | 10,432 |
+| `eth_getLogs` calls used | **5** |
+| truncations hit | **0** |
+
+Detection is proven and it is cheap: five calls covered five minutes of a chain doing ~864k
+blocks/day, with no 1,000-record truncation at this window size.
+
+**240 distinct minting contracts in five minutes.** Extrapolated naively that is roughly 2,900 per
+hour and **~69,000 per day, on one chain**. The real mints anyone would want are a handful among them.
+
+This is the strongest evidence yet for the line already recorded in the research: **the scarce
+resource is filtering, not discovery.** A radar optimized for speed of detection would deliver a
+firehose of junk. Discovery on this chain is nearly free; deciding which 5 of 69,000 matter is the
+entire product.
+
+### ERC-1155 is negligible here
+`erc721: 10,431` against `erc1155: 1` in the same window.
+
+Stated honestly against an earlier claim of mine: the malformed ERC-1155 topic constants that were
+corrected before this run would have hidden **one event out of 10,432** on this chain. The practical
+impact here was small. The correction and the load-time guard remain right, because that ratio was
+unknowable in advance and may differ on Ethereum or Base — but the catch mattered less than it looked.
+
+### Ethereum and Base — blocked, for two different reasons
+- **Ethereum** (`ethereum.publicnode.com`): `eth_getLogs` rejected — *"Archive requests require a
+  personal token."* The free public endpoint will not serve log ranges.
+- **Base** (`mainnet.base.org`): `-32020 backend response too large`. The window was too wide; Base
+  needs smaller block ranges per call, or a keyed provider.
+
+Neither is a dead end. Both need either a smaller window or a free-tier key.
+
+### Timing — still unresolved, and now we know exactly why
+0 known, 25 unknown. Every creation lookup failed with
+`binary_search_rpc_error: metadata is not found, <block>`.
+
+The cause is concrete: **the Robinhood public RPC is not an archive node.** `eth_getCode` at block
+~24.6M against a head of ~49.3M is far outside a pruned node's retention. The binary-search fallback
+cannot work on a pruned endpoint at all — it is not a tuning problem.
+
+To resolve the timing question the probe needs archive access: a free Blockscout key
+(`dev.blockscout.com`, one key covers all three chains) or an Alchemy free-tier key. Both are free;
+neither was used in this run because the run was deliberately keyless.
+
+## The question that decides it — STILL UNRESOLVED
 
 **Does contract deployment reliably precede the public announcement?** The researcher found no data
 and explicitly declined to guess. That is the correct outcome to report, and it leaves the fallback
@@ -129,5 +185,12 @@ announcement times, and check whether contracts land days early in a paused stat
 Cost: a few hours and free-tier API calls.
 
 ## Gate impact
-On-chain monitoring is **cheap, buildable, and infrastructure-unblocked**. It is **not** established
-as early. Do not build the discovery path on it until the timing question is measured.
+On-chain **detection** is now measured, not assumed: it works, it is cheap, and on Robinhood Chain it
+surfaces ~69,000 minting contracts per day.
+
+On-chain **earliness** remains unmeasured, and the reason is now specific rather than vague: the
+keyless endpoint cannot serve historical `eth_getCode`. A free key unblocks the measurement.
+
+The more important shift is what the volume implies. Discovery was never the bottleneck this path was
+meant to solve — filtering is. Any design that treats "we can see mints fastest" as the win condition
+is answering a question the measurement says is already answered and cheap.
