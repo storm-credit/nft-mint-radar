@@ -60,6 +60,12 @@ Conversation history is not source of truth.
 ### Derived-artifact synchronization
 Current known P0 stale-derived-artifact blocker: **0**.
 
+Cross-artifact consistency audit on 2026-08-29 (canonical docs vs `spikes/` runners vs `.github/workflows/`)
+found and closed two doc-vs-code contradictions: an X Recent Search cap that was documented as enforced but
+existed only as an outbound request parameter, and a `--max-results` flag documented in `spikes/README.md`
+that the runner never accepted. See the 2026-08-29 entry in `docs/deviations/CHANGELOG_DECISIONS.md`.
+No shadow-authority finding. No architecture, schema, or ADR change.
+
 `DEEP_DESIGN`, `ARCHITECTURE`, `SOURCE_STRATEGY`, `SOURCE_ADAPTER_CONTRACTS`, `HARNESS_SPEC`, `HARNESS_SCHEMAS`, `PROMPT_CONTRACTS`, `EVAL_FIXTURES`, `SPIKE_PLAN`, and the Production Coding Start Gate are synchronized to the current design.
 
 ---
