@@ -36,14 +36,30 @@ Hard rules:
 ## XAdapter
 Role: P0 discovery + T1 identity/claim source when the account relation is verified.
 
-Modes under operational validation:
-- filtered stream
-- recent-search polling
-- hybrid
+Current official pay-per-use contract observed 2026-08-29:
+- public Post reads: `$0.005/resource` at the observed documentation revision;
+- Pay-per-use Filtered Stream: available;
+- Filtered Stream: up to 1,000 rules/project, 1 connection, core operators;
+- official docs describe about 6–7 second P99 stream delivery;
+- pay-per-use Post reads capped at 2,000,000/month before Enterprise;
+- Bearer Token is sufficient for app-only public-data reads;
+- prices remain revalidated against Developer Console before production budget decisions.
 
-Final mode waits for `SPIKE-X-001`.
+Operational mode candidate after paper validation:
 
-Use narrow project-account/keyword rules. A post from a verified official identity is not by itself proof that a newly introduced wallet-impacting CTA is safe.
+`FILTERED_STREAM_PRIMARY + RECENT_SEARCH_RECOVERY`
+
+Final mode still waits for the bounded credentialed `SPIKE-X-001` because real NFT useful/noise volume has not been observed.
+
+Budget rules:
+- paid Post reads are counted from provider usage;
+- hard daily/monthly source budget is deterministic configuration;
+- budget exhaustion => `DEGRADED`, never surprise overspend;
+- first operational spike is bounded to <=10 search Posts plus <=10 stream Posts, currently <=$0.10 in Post-read cost at the observed public rate.
+
+Use narrow verified-project-account/keyword rules in production. A post from a verified official identity is not by itself proof that a newly introduced wallet-impacting CTA is safe.
+
+Recent Search is the recovery/catch-up path for reconnect/backfill; it is not justification for broad repeated polling when Filtered Stream has better measured source ROI.
 
 ## OfficialWebsiteAdapter
 Role: T1 identity/link/domain/schedule/contract/correction source.
@@ -63,7 +79,10 @@ Phase 1 chains:
 - Base
 - Robinhood Chain
 
-Auth: `OPENSEA_API_KEY`.
+Credential model:
+- disposable feasibility probe may use OpenSea instant free-tier key issuance;
+- longer-lived production use may configure `OPENSEA_API_KEY`;
+- no key is committed.
 
 Mapping:
 ```text
@@ -74,6 +93,11 @@ relevant user action -> Opportunity referencing campaign/stage
 ```
 
 Price mapping preserves FREE/KNOWN/UNKNOWN/VARIABLE and canonical payment asset (`NATIVE|ERC20|OTHER`).
+
+Operational finding:
+- provider chain keys `ethereum`, `base`, `robinhood` resolved live;
+- structured multi-stage mapping succeeded;
+- Base returned zero `upcoming` rows during a period with active Base mint surfaces.
 
 Constraints:
 - OpenSea calendar/listing is not complete market coverage;
@@ -135,7 +159,7 @@ Official project channel may become T1 only after identity relation verification
 ## TelegramNotifier
 P0 destination.
 
-Auth: `TELEGRAM_BOT_TOKEN`; target separately configured.
+Auth: `TELEGRAM_BOT_TOKEN`; target may be explicit or resolved during the disposable clean-bot spike after `/start`.
 
 MVP uses Bot API sendMessage through transactional outbox. Renderer only receives a CTA already assessed `CONSISTENT`; notifier does not perform independent discovery/trust decisions.
 
