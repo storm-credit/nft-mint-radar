@@ -78,3 +78,13 @@ Use this file only when implementation/spike work materially differs from the ac
 - Follow-up: none.
 - ADR required: NO - captured inside ADR-010's context.
 
+### 2026-08-29 - Implementation order changed from horizontal to vertical-first
+- Original plan: the frozen 14-step order built all canonical domain primitives, then persistence, then verification, then adapters, reaching a Telegram renderer at step 10 and an end-to-end dry run at step 14.
+- Actual change: `ADR-011` makes the order vertical-first. Slice 1 is the thinnest complete path - OpenSea to one real Telegram alert - and the 14-step list becomes a coverage checklist rather than a sequence.
+- Why: a blind-spot sweep run immediately after the gate opened found no safety defect and no unmet gate criterion, but three CRITICAL questions the horizontal order answers last. Signal volume is unproven by our own measurements: X produced zero actionable mint signals on both tested query shapes, and OpenSea upcoming returned 14 and then 11 rows across all three target chains. "Early enough to act" is measured only provider-to-system, never to the human. And in a low-volume product, silence is the dominant state and a dead worker looks exactly like a quiet market. One vertical slice measures all three at once; the horizontal order measures them after most of the build is spent.
+- Evidence: `docs/BLIND_SPOT_SWEEP_2026-08-29.md`; `ADR-010` "Neither tested query shape produced a single actionable mint signal"; `SPIKE-MARKET-001-RESULT.md:33`; OpenSea probe run `33257068301`; `METRICS_SLO.md:16,20,25`.
+- Impact: time to first real alert drops from step 10 to slice 1. Three blind-spot patches are pulled into slice 1 scope because the slice cannot measure what it exists to measure without them: `human_action_latency`, a liveness signal, and a user operating profile.
+- Compatibility/migration impact: none. No contract, schema, fixture, safety invariant or gate criterion changes. Some primitives are built narrowly and widened later; that rework is accepted deliberately.
+- Follow-up: if the slice shows the human is the dominant delay, revisit ADR-010's latency rationale - it justified STREAM_PRIMARY on ~4.8s delivery against a product target of p95 15 minutes, which is roughly two orders of magnitude finer than required. The remaining honest argument for stream is cost shape, and that is not what ADR-010 records.
+- ADR required: YES - recorded as `ADR-011`.
+

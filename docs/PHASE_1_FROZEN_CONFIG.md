@@ -122,7 +122,28 @@ send decision, and Telegram transport are deterministic. No central agent orches
 
 ---
 
-## Implementation order — frozen
+## Implementation order — vertical-first (ADR-011)
+`ADR-011` replaced the horizontal sequence below with a vertical-first order, after a blind-spot sweep
+showed that the horizontal order answers the product's three CRITICAL open questions last.
+
+### Slice 1 — thinnest end-to-end path
+OpenSea -> minimal Project/Campaign/Stage/Opportunity -> Evidence -> CTA safety gate ->
+deterministic decision -> Telegram renderer + outbox -> one real alert.
+
+Thin in coverage, never in safety: all nine invariants above apply from the first commit.
+
+Required alongside slice 1, because the slice cannot measure what it exists to measure without them:
+- `human_action_latency` = `user_seen_or_ack_at - notification_sent_at`;
+- a low-frequency liveness/status signal, so silence is distinguishable from a dead worker;
+- a user operating profile: timezone, sleep/work blackout, escalation threshold.
+
+### After slice 1
+Widen outward from the working path, choosing the next step by what the slice measures.
+
+### Coverage checklist (no longer the sequence)
+The list below remains the set of things Phase 1 must eventually contain. `ADR-011` governs the
+order in which they are built.
+
 1. canonical domain primitives
 2. evidence / identity / CTA-safety core
 3. persistence, evidence history, transactional outbox

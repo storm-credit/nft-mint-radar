@@ -211,12 +211,15 @@ artifacts STALE, stop the impacted path, and re-enter only the affected gate cri
 ---
 
 ## Next action
-Production implementation of Phase 1, starting at step 1 of the frozen order in
-`docs/PHASE_1_FROZEN_CONFIG.md`: canonical domain primitives (`Project`, `Source`, `Evidence`,
-`ChainIdentity`, `AssetAmount`, `MintCampaign`, `MintStage`, `Opportunity`, `VerifiedLink`,
-`ActionLinkAssessment`).
+Production implementation of Phase 1 **slice 1**, per `ADR-011`: the thinnest end-to-end path from
+OpenSea through verification and the CTA safety gate to one real Telegram alert.
 
-Build the smallest working slice at each step and keep spike code out of production code.
+A blind-spot sweep (`docs/BLIND_SPOT_SWEEP_2026-08-29.md`) found no safety defect and no unmet gate
+criterion, but three CRITICAL open questions that the original horizontal order would have answered
+last: whether useful signal volume exists at all, how late the human actually sees an alert, and
+whether silence is distinguishable from a dead worker. Slice 1 measures all three at once.
+
+The slice is thin in coverage, never in safety. Keep spike code out of production code.
 
 Rules that survive the gate and must not be weakened during implementation:
 - the nine safety invariants in `docs/PHASE_1_FROZEN_CONFIG.md`;
