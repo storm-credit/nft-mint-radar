@@ -2,7 +2,7 @@
 
 ## Current verdict
 
-**Deep Design v1.1 canonical sync complete / Minimum-Action governance adopted / Harness logical-role architecture synced / Harness schemas v1.1 synced / Eval fixtures synced / Local Action Space audit PASS / OpenSea operational spike CLOSED / P0 provider operational evidence 2건 미완료 / Production Coding BLOCKED**
+**Deep Design v1.1 canonical sync complete / Minimum-Action governance adopted / Harness logical-role architecture synced / Harness schemas v1.1 synced / Eval fixtures synced / Local Action Space audit PASS / OpenSea operational spike CLOSED / Telegram credential path probed / X paper-cost contract resolved + no-cost preflight PASS / P0 credentialed operational evidence 2건 미완료 / Production Coding BLOCKED**
 
 Current gate: **`SPIKE_REQUIRED / PRODUCTION CODING BLOCKED`**.
 
@@ -35,98 +35,130 @@ Conversation history is not source of truth.
 - legacy project reactivation / chain migration / holder-access events canonicalized.
 - source/project identity trust separated from wallet-impacting CTA safety.
 - append-only Evidence, correction/conflict/stale semantics accepted.
-- stage/campaign/opportunity state rules accepted.
 - Quality / Alpha / Effort / Risk scoring + deterministic hard gates accepted.
 - wallet/influencer evidence regimes separated.
 - PostgreSQL + transactional outbox accepted.
 - Railway hybrid runtime target accepted; no production deployment yet.
 
 ### Minimum-Action adoption
-- `MINIMUM_ACTION_ADOPTION.md` added.
-- ADR-009 accepted.
 - root `CLAUDE.md` is constitution/authority map rather than duplicate domain spec.
 - logical Harness roles do not imply separate autonomous agents.
 - Phase 1 hot path is deterministic-first.
 - model-driven nodes are narrow: unstructured extraction, ambiguous entity resolution, Phase 2 quest parsing, independent critique.
 - scoring/state/dedup/budget/decision/Telegram are deterministic by default.
 - minimum context bundles defined.
-- independent critic is isolated from builder rationale by default.
-- Shadow Authority / Stale Derived Artifact are explicit governance checks.
+- Shadow Authority / Stale Derived Artifact governance active.
 
 ### Local action-space audit
-`LOCAL_ACTION_SPACE_AUDIT.md`:
 - UNSTRUCTURED_SIGNAL_EXTRACT: PASS
-- AMBIGUOUS_ENTITY_RESOLVE: 4 conservative branches — PASS
+- AMBIGUOUS_ENTITY_RESOLVE: PASS
 - QUEST_PARSE: PASS
-- INDEPENDENT_CRITIC: 4 verdict branches — PASS
+- INDEPENDENT_CRITIC: PASS
 - designed-node waivers: 0
 - scope limits: 0
 
-### Harness / derived-artifact synchronization
-- `DEEP_DESIGN.md` synchronized to ADR-007/008/009.
-- `ARCHITECTURE.md` synchronized and overview-only.
-- `SOURCE_STRATEGY.md` current.
-- `SOURCE_ADAPTER_CONTRACTS.md` synchronized to Robinhood Chain / Campaign+Stage / asset-aware price / minimum-action scheduler model.
-- `HARNESS_SPEC.md` synchronized to deterministic-first mechanism.
-- `HARNESS_SCHEMAS.md` v1.1 synchronized.
-- `PROMPT_CONTRACTS.md` limited to narrow model-driven nodes.
-- `EVAL_FIXTURES.md` synchronized through F28.
-- `SPIKE_PLAN.md` synchronized.
-- `PRODUCTION_CODING_START_GATE.md` synchronized.
-
+### Derived-artifact synchronization
 Current known P0 stale-derived-artifact blocker: **0**.
 
-### OpenSea operational spike — CLOSED
-See `docs/spikes/SPIKE-MARKET-001-RESULT.md`.
-
-Observed live through GitHub Actions on 2026-08-28:
-- instant free key issuance: PASS (`201`)
-- provider chain keys resolved: `ethereum`, `base`, `robinhood`
-- combined upcoming rows: 14
-- Ethereum query: 200 / 8 rows
-- Base query: 200 / 0 rows at observation time
-- Robinhood query: 200 / 6 rows
-- detail sample: 10/10 success
-- multi-stage drops: 7/10
-- total stages: 25
-- real GTD / FCFS / holder / free-team / public structures observed
-- Robinhood multi-stage mapping validated
-- previous DNS failure reclassified as execution-environment-specific
-
-Important coverage decision:
-- Base returned zero `upcoming` rows while active Base mint surfaces existed;
-- therefore OpenSea `upcoming` is useful but cannot be treated as mint-coverage authority;
-- off-OpenSea official/campaign/on-chain discovery remains required.
-
-Non-native payment-token canonicalization was not observed in the bounded detail sample. The domain already represents unknown payment assets safely, so this is retained as a future targeted adapter refinement, not a Phase 1 blocker.
+`DEEP_DESIGN`, `ARCHITECTURE`, `SOURCE_STRATEGY`, `SOURCE_ADAPTER_CONTRACTS`, `HARNESS_SPEC`, `HARNESS_SCHEMAS`, `PROMPT_CONTRACTS`, `EVAL_FIXTURES`, `SPIKE_PLAN`, and the Production Coding Start Gate are synchronized to the current design.
 
 ---
 
-## Remaining Phase 1 P0 operational evidence — 2
+## OpenSea operational spike — CLOSED
+See `docs/spikes/SPIKE-MARKET-001-RESULT.md`.
 
-### 1. Telegram real delivery
-User-side prerequisites have been reduced to:
-- create Telegram bot;
-- store `TELEGRAM_BOT_TOKEN` only in secret/runtime configuration;
-- send `/start` to the bot.
+Observed live through GitHub Actions on 2026-08-28:
+- instant free key issuance PASS;
+- chain keys: `ethereum`, `base`, `robinhood`;
+- combined upcoming rows: 14;
+- Ethereum: 8;
+- Base: 0 at observation time;
+- Robinhood: 6;
+- detail sample: 10/10;
+- multi-stage: 7/10;
+- total stages: 25;
+- GTD / FCFS / holder / free-team / public structures observed.
 
-`TELEGRAM_CHAT_ID` is optional for the spike; the disposable probe can resolve the latest private chat through `getUpdates` when no webhook is configured.
+Coverage conclusion:
+- Base endpoint itself succeeded while `upcoming` returned zero during a period with active Base mint surfaces;
+- therefore OpenSea is structurally useful but incomplete;
+- outside official/campaign/on-chain/X discovery remains required.
 
-Need to observe:
-- one Korean dry-run delivered once;
-- safe no-CTA/CTA formatting behavior;
-- delivery response and local retry/dedup semantics.
+---
 
-### 2. X real access/cost/mode
-Need:
-- Developer credential/access;
-- current pricing/budget data;
-- bounded recent-search/stream test;
-- latency and useful/noise volume;
-- spend projection;
-- final mode = STREAM_PRIMARY / SEARCH_PRIMARY / HYBRID / X_OPTIONAL.
+## Telegram operational spike — credential path ready, delivery still blocked
+See `docs/spikes/SPIKE-TG-001-RESULT.md`.
 
-X calls remain guarded because reads may consume paid credits.
+Guarded Actions smoke observed:
+- workflow/probe path ready;
+- `TELEGRAM_BOT_TOKEN`: **ABSENT** at observed run;
+- delivery step skipped;
+- network send attempted: false.
+
+User-side prerequisite is now minimal:
+1. create bot with `@BotFather`;
+2. add Actions secret `TELEGRAM_BOT_TOKEN`;
+3. send `/start` once.
+
+`TELEGRAM_CHAT_ID` is normally unnecessary for the clean-bot spike.
+
+Remaining evidence:
+- one Korean dry-run arrives;
+- provider message id/latency observed;
+- single-delivery/dedup contract retained.
+
+---
+
+## X operational spike — paper/cost ambiguity closed, credentialed run still blocked
+See `docs/spikes/SPIKE-X-001-RESULT.md`.
+
+Current official documentation observed 2026-08-29 establishes:
+- Post read: **$0.005/resource** at observed revision;
+- Pay-per-use Filtered Stream available;
+- 1,000 rules/project;
+- 1 stream connection;
+- ~6–7 second P99 stream delivery described by X;
+- 2,000,000 Post-read/month Pay-per-use cap;
+- Bearer Token for app-only public-data reads.
+
+Provisional mode:
+
+`FILTERED_STREAM_PRIMARY + RECENT_SEARCH_RECOVERY`
+
+No-cost Actions preflight run `33245992097` observed:
+- `spikes/x_probe.py` compile: PASS;
+- `X_BEARER_TOKEN`: **ABSENT**;
+- paid API calls attempted: 0.
+
+Bounded credentialed test is ready:
+- Recent Search <=10 Posts -> current ceiling `$0.05`;
+- Filtered Stream <=10 Posts -> current ceiling `$0.05`;
+- combined Post-read ceiling: **`$0.10`** at current public rate;
+- existing stream rules => stream leg refuses to run;
+- paid call requires exact manual opt-in `I_UNDERSTAND_X_MAY_COST`.
+
+Remaining evidence:
+- Bearer-token API access;
+- bounded useful/noise sample;
+- stream rule/connection lifecycle or precise access failure;
+- execution-time rate recheck;
+- final X mode freeze.
+
+---
+
+## Remaining Phase 1 P0 blockers — exactly 2
+
+### 1. Telegram
+External user-owned prerequisite:
+- `TELEGRAM_BOT_TOKEN` + `/start`.
+
+### 2. X
+External user-owned prerequisite:
+- developer Project/App;
+- enough API credit for bounded test;
+- `X_BEARER_TOKEN`.
+
+No additional P0 design/code uncertainty is known before those credentials exist.
 
 ---
 
@@ -136,7 +168,7 @@ X calls remain guarded because reads may consume paid credits.
 - Discord authorized server read — Phase 3.
 - PREMINT/Guild only if supported access is enabled.
 - Railway outbound/runtime activation before deployment.
-- targeted non-native OpenSea payment-asset mapping sample when available.
+- targeted non-native OpenSea payment-asset sample when available.
 
 ---
 
@@ -148,16 +180,12 @@ X calls remain guarded because reads may consume paid credits.
 ### Disposable technical spikes
 **UNBLOCKED.** They must not become production code accidentally.
 
-### Harness/eval runner
-Can be implemented only when the current Start Gate permits that slice; it must use current v1.1 contracts/fixtures and preserve minimum-action architecture.
-
 ---
 
 ## PHASE_1_CODING_READY
-- [x] current domain/architecture design synchronized.
+- [x] domain/architecture synchronized.
 - [x] latest blind-spot decisions incorporated.
 - [x] Minimum-Action governance adopted.
-- [x] logical-role vs agent distinction fixed.
 - [x] typed harness schemas current.
 - [x] prompt contracts current.
 - [x] eval fixtures current.
@@ -165,18 +193,20 @@ Can be implemented only when the current Start Gate permits that slice; it must 
 - [x] no known P0 stale authority/derived artifact.
 - [x] runtime topology/provider target selected.
 - [x] OpenSea operational spike complete and reconciled.
-- [ ] Telegram operational spike complete.
-- [ ] X operational mode/cost resolved or explicitly optional.
-- [ ] remaining provider spike results reconciled into canonical status/ADRs.
+- [x] X public pricing/access contract revalidated and bounded probe ready.
+- [ ] Telegram real delivery complete.
+- [ ] X credentialed bounded run complete and final mode frozen.
+- [ ] remaining results reconciled into canonical status/ADR if required.
 - [ ] no unresolved P0 provider feasibility ambiguity.
 
 ---
 
 ## Next action
-Do not start production collectors yet.
+No production collectors yet.
 
-Continue only the two remaining Phase 1 provider spikes as credentials/access permit:
-1. Telegram real dry-run;
-2. X bounded paid-access/cost trial.
-
-Then reconcile through `docs/PRODUCTION_CODING_START_GATE.md` and, if all P0 evidence is closed, move to `FREEZE_PENDING` and finally `PHASE_1_CODING_READY`.
+As soon as credentials exist:
+1. Telegram dry-run;
+2. X bounded <=$0.10 trial;
+3. reconcile results;
+4. move to `FREEZE_PENDING`;
+5. if no P0 remains, set `PHASE_1_CODING_READY` and begin production implementation in the frozen order.
