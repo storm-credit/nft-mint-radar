@@ -150,6 +150,45 @@ The bounded-spend design behaved exactly as intended: a rejected run cost `$0.00
    X is "P0 when access/budget permits but degrades cleanly", so no architecture change is
    required to drop it. Cost is coverage, not correctness.
 
+## Pay-Per-Use bounded run — 2026-08-29
+After the App was moved to the `NFT Mint Radar` Pay Per Use project, run `33255955730`
+executed mode `both` with the opt-in supplied. Post-read rate rechecked immediately before
+execution: still `$0.005/resource`.
+
+### Recent Search leg — PASS
+- HTTP **200**, latency **225.9 ms**;
+- query: `from:opensea (mint OR drop OR allowlist) -is:retweet`;
+- returned Posts: **1** (`result_count: 1`, 7-day window);
+- `post_cap_exceeded`: false;
+- actual Post-read cost: **$0.005**.
+
+Access is therefore confirmed: Pay Per Use entitles Recent Search, and the earlier 403 was
+purely the Free-plan entitlement.
+
+**Signal quality of that single Post: noise, not alpha.** It is an OpenSea retrospective about
+Pixelmon's 2022 Generation 1 mint, not a current or upcoming mint announcement. Useful 0 / noise 1.
+
+This says more about the query than about X. `from:opensea` alone is a marketing account, not a
+drop feed, and it produced one Post in seven days. It is not a usable Phase 1 discovery query and
+must not be carried into production as one. A real useful/noise ratio still needs a sample from a
+query shaped like the actual watchlist: specific project accounts plus mint/allowlist operators.
+
+### Filtered Stream leg — rule lifecycle PASS, connection deferred
+- rule creation: **succeeded**;
+- stream connect: **HTTP 503**, `connection_issue: ProvisioningSubscription`,
+  "Your subscription change is currently being provisioned, please try again in a minute";
+- Posts delivered: **0**; cost **$0.00**;
+- temporary rule deleted: **true**, `cleanup_status: 200`.
+
+This is a transient consequence of moving the App onto Pay Per Use minutes earlier, not an
+entitlement refusal. The important durable evidence here is that the **rule create/delete
+lifecycle works and cleanup succeeded even on a failed connection** — the probe left no rule behind.
+
+### Spend
+- run total actual Post-read cost: **$0.005**;
+- `post_read_cost_ceiling_exceeded`: false;
+- remaining budget inside the approved `$0.10` ceiling: **$0.095**.
+
 ## Gate impact
 The old **pricing-definition ambiguity is closed**.
 
