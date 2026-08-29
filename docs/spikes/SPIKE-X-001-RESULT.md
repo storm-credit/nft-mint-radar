@@ -79,6 +79,16 @@ This is not frozen until the bounded credentialed run succeeds.
 - execution-time Developer Console rate checked against the documented $0.005 assumption;
 - final mode frozen as `STREAM_PRIMARY_WITH_SEARCH_RECOVERY`, `SEARCH_PRIMARY`, or `X_OPTIONAL`.
 
+## Re-observation — 2026-08-29
+`X Spike No-Cost Smoke` rerun on the current `main`:
+- run id: `33252938234`
+- `spikes/x_probe.py` compile: **PASS**
+- `X_BEARER_TOKEN`: **ABSENT**
+- paid API call attempted: **false**
+- retained artifact status: `BLOCKED_BY_CREDENTIAL`
+
+Repository secret enumeration on the same date returned zero configured Actions secrets and zero environments.
+
 ## Gate impact
 The old **pricing-definition ambiguity is closed**.
 

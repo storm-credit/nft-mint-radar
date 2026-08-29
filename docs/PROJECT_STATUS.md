@@ -89,11 +89,12 @@ Coverage conclusion:
 ## Telegram operational spike — credential path ready, delivery still blocked
 See `docs/spikes/SPIKE-TG-001-RESULT.md`.
 
-Guarded Actions smoke observed:
+Guarded Actions smoke observed (2026-08-28 run `33172110528`, reobserved 2026-08-29 run `33252936929`):
 - workflow/probe path ready;
-- `TELEGRAM_BOT_TOKEN`: **ABSENT** at observed run;
+- `TELEGRAM_BOT_TOKEN`: **ABSENT** at both observed runs;
 - delivery step skipped;
-- network send attempted: false.
+- network send attempted: false;
+- repository Actions-secret enumeration on 2026-08-29: zero secrets, zero environments.
 
 User-side prerequisite is now minimal:
 1. create bot with `@BotFather`;
@@ -125,10 +126,11 @@ Provisional mode:
 
 `FILTERED_STREAM_PRIMARY + RECENT_SEARCH_RECOVERY`
 
-No-cost Actions preflight run `33245992097` observed:
+No-cost Actions preflight runs `33245992097` and `33252938234` (2026-08-29) observed:
 - `spikes/x_probe.py` compile: PASS;
 - `X_BEARER_TOKEN`: **ABSENT**;
-- paid API calls attempted: 0.
+- paid API calls attempted: 0;
+- repository Actions-secret enumeration on 2026-08-29: zero secrets, zero environments.
 
 Bounded credentialed test is ready:
 - Recent Search <=10 Posts -> current ceiling `$0.05`;

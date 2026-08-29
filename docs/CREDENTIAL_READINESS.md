@@ -39,9 +39,12 @@ If `TELEGRAM_CHAT_ID` is absent, the disposable probe:
 If the bot already has a webhook, use a clean test bot or configure `TELEGRAM_CHAT_ID` explicitly; the spike will not silently remove a webhook.
 
 ### Current observed state
-Guarded GitHub Actions smoke on 2026-08-28 observed:
+Guarded GitHub Actions smoke reobserved on 2026-08-29 (run `33252936929`, earlier run `33172110528`):
 - `TELEGRAM_BOT_TOKEN`: absent
+- delivery step: skipped
 - network send attempted: false
+
+Repository Actions-secret enumeration on 2026-08-29 returned zero secrets and zero environments.
 
 See `docs/spikes/SPIKE-TG-001-RESULT.md`.
 
@@ -84,10 +87,12 @@ Bounded `both` mode:
 The stream leg refuses to run if the project already has Filtered Stream rules, preventing unrelated rules from creating additional test reads.
 
 ### Current observed state
-No-cost GitHub Actions preflight on 2026-08-29 observed:
+No-cost GitHub Actions preflight on 2026-08-29 (runs `33245992097` and `33252938234`) observed:
 - `spikes/x_probe.py`: compile PASS
 - `X_BEARER_TOKEN`: absent
 - paid API call attempted: false
+
+Repository Actions-secret enumeration on 2026-08-29 returned zero secrets and zero environments.
 
 See `docs/spikes/SPIKE-X-001-RESULT.md`.
 

@@ -33,6 +33,19 @@ Observed credential state:
 
 The token value was never printed because no value existed in the secret context.
 
+## Re-observation — 2026-08-29
+Guarded `Telegram Spike Smoke` rerun on the current `main`:
+- run id: `33252936929`
+- workflow conclusion: success as a guarded readiness check
+
+Observed credential state:
+- `TELEGRAM_BOT_TOKEN`: **ABSENT** in the workflow secret context at this run
+- delivery step: **SKIPPED**
+- network send attempted: **false**
+- retained artifact status: `BLOCKED_BY_CREDENTIAL`
+
+Repository secret enumeration on the same date returned zero configured Actions secrets and zero environments, so the absence is a repository-configuration fact, not a workflow-context artifact.
+
 ## Exact user action required
 1. Create a bot with `@BotFather`.
 2. Add the token to repository Actions secrets as `TELEGRAM_BOT_TOKEN`.
