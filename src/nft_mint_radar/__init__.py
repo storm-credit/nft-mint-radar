@@ -1,0 +1,1 @@
+"""NFT mint radar package."""
