@@ -210,9 +210,36 @@ artifacts STALE, stop the impacted path, and re-enter only the affected gate cri
 
 ---
 
+## Discovery path changed 2026-08-30 — ADR-012
+The user rejected calendar-first discovery: real mint access flows through people, and the goal is
+whitelist eligibility. Research confirmed the instinct and refuted the proposed channels.
+
+- **Membership is not access.** Discord and Telegram grant bot read rights to community *operators*,
+  not members. A compliant reader covers only servers the user administers. Every tool that gets
+  around this is a self-bot or userbot.
+- **Reddit is legitimately readable and consistently late.** Retained only as a scam-warning feed.
+- **Paid alpha groups have no evidenced edge**, and are typically paid in allowlist spots by the
+  projects they call.
+- **The earliest legitimate signals are upstream of chat**: allowlist platforms with APIs, then
+  on-chain deployment, then author-scoped X. Both were already in the source list — the priority
+  order was wrong, not the list.
+- **Robinhood Chain is where the current cycle is** (>2x Ethereum NFT volume, sub-hour seven-figure
+  sellouts) and it is drainer-dense. Base's creator strategy was publicly abandoned in July 2026,
+  which explains our zero-result Base probes as a market fact, not an adapter defect.
+- **Mint count hit a record while revenue fell**: the scarce resource is filtering, not discovery.
+
+Two new safety invariants: links come from the author's own post body only, never the reply graph
+where drainers seed fake mint links; and follower count never enters scoring, because it is
+adversarially inflated.
+
+Evidence: `docs/research/SOURCE_ACCESS_RESEARCH_2026-08-30.md`.
+
+**New open spike:** allowlist-platform (PREMINT and peers) access, cost, and whether it covers
+Robinhood Chain. Slice 1's source now waits on it, with on-chain deploy monitoring as the fallback.
+
 ## Next action
-Production implementation of Phase 1 **slice 1**, per `ADR-011`: the thinnest end-to-end path from
-OpenSea through verification and the CTA safety gate to one real Telegram alert.
+Resolve the allowlist-platform spike from `ADR-012`, then build slice 1 against the chosen upstream
+source. `ADR-011`'s vertical-first shape is unchanged; only the source moved.
 
 A blind-spot sweep (`docs/BLIND_SPOT_SWEEP_2026-08-29.md`) found no safety defect and no unmet gate
 criterion, but three CRITICAL open questions that the original horizontal order would have answered

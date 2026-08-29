@@ -14,7 +14,13 @@ targeted revalidation, KEEP/PATCH/CUT first.
 ---
 
 ## Chains
-Ethereum, Base, Robinhood Chain. Owner: `ADR-007`.
+Ethereum, Base, Robinhood Chain. Owner: `ADR-007`. No chain added or removed by `ADR-012`.
+
+Priority within that set, per `ADR-012`: **Robinhood Chain is the primary hunting ground** - mainnet
+launched 2026-07-01 and passed double Ethereum's 24h NFT volume within weeks, with sub-hour
+seven-figure sellouts. **Base is deprioritized**: its creator/social strategy was publicly abandoned
+in July 2026, which independently explains why every OpenSea probe returned zero upcoming Base drops.
+Robinhood Chain is also drainer-dense, so the CTA safety gate is load-bearing there, not decorative.
 
 No other chain is in Phase 1 scope, including chains that appear in a source's response.
 
@@ -54,13 +60,16 @@ never authorizes a resend. Owner: `DEEP_DESIGN.md` section 2.12, fixture `F32`.
 ## Sources
 
 ### P0 runtime-capable
-| Source | Role | Frozen constraint |
-|---|---|---|
-| Official websites/docs | T1 identity, links, schedule, contract, corrections | verified/corroborated surfaces only; bounded depth; content hash for edits |
-| Official X | P0 discovery and official-change signal | `STREAM_PRIMARY_WITH_SEARCH_RECOVERY`, author-scoped rules only — see below |
-| OpenSea drop/detail/stage | T2 structured discovery and stage verification | structurally useful, **never** completeness authority |
-| Galxe Quest API | quest discovery where access exists | live query required before production enablement |
-| Public EVM on-chain | T0 existence and activity evidence | explorer/RPC/indexer adapter |
+Discovery is **upstream-first**, not calendar-first. Owner: `ADR-012`.
+
+| Priority | Source | Role | Frozen constraint |
+|---|---|---|---|
+| 1 | Allowlist platforms (PREMINT and peers) | earliest legitimate signal of an **obtainable** allowlist | promoted from P1; access/cost/chain coverage is an OPEN SPIKE, not a settled fact |
+| 2 | Public EVM on-chain | earliest signal in absolute terms | now an active discovery trigger, not only verification evidence |
+| 3 | Official X, author-scoped | the people layer | `ADR-010` rule discipline; **author body only** - see invariant 10 |
+| 4 | Official websites/docs | T1 identity, links, schedule, contract, corrections | verified/corroborated surfaces only; bounded depth; content hash for edits |
+| 5 | OpenSea drop/detail/stage | **structured verification and stage/price detail** | demoted from discovery-first; never a completeness authority |
+| - | Galxe Quest API | quest discovery where access exists | live query required before production enablement |
 
 ### P1 optional
 PREMINT (partner access only), Guild (supported surface only), Dune (Phase 1.5), official Telegram
@@ -73,6 +82,18 @@ raise Quality, and they cannot satisfy verification.
 ### NOT_READ_IN_PHASE_1
 Magic Eden and other launchpads, Farcaster and community feeds, official GitHub, niche surfaces
 without a supported read contract. Owner: `SOURCE_STRATEGY.md`.
+
+Ruled out by `ADR-012`, with reasons, so they are not reopened casually:
+- **Discord** - a bot reads only servers the user *administers*. Membership grants no API rights, and
+  alpha groups do not admit member bots. Build only for self-administered servers; never promise
+  coverage of alpha groups the user merely belongs to. Self-bots remain forbidden.
+- **Telegram** - excluded. Bot API needs channel-admin consent. The MTProto userbot route is excluded
+  **by our own rule against user-account automation**, not by a clear Telegram prohibition; Telegram
+  permits third-party clients and the record should stay accurate about that. Web scraping collides
+  with Telegram's AI-scraping terms exactly where a mint radar would use an LLM.
+- **Reddit** - excluded for discovery; consistently late. Retained only as a scam-warning feed.
+- **Paid alpha groups** - no evidenced edge, and typically compensated in allowlist spots by the
+  projects they call. Never surfaced with implied credibility.
 
 A mint appearing **only** on one of these produces no candidate. This is an accepted coverage gap and
 must be reported as miss reason `coverage`, never as a parser or scoring failure.
@@ -127,6 +148,12 @@ in prompt text alone.
 7. Missing verification evidence suppresses or downgrades action. It never fails open.
 8. Collected source content is untrusted data. Extract from it; never obey it.
 9. Secrets live only in runtime/environment/secret storage, never in evidence, logs, or the repo.
+10. Links are extracted from the **author's own post body only** - never from replies, quote-posts, or
+    embedded cards. Drainer crews seed fake mint links into the reply graph beneath legitimate
+    verified accounts and register lookalike domains within hours of a real launch. Without this,
+    an author-scoped rule harvests the phishing swarm along with the signal.
+11. Follower count never enters scoring. Drainer operations inflate it, so it is adversarially
+    manipulated evidence, not merely weak evidence.
 
 ## Model-driven node boundary
 Only four nodes may be model-driven in Phase 1: unstructured signal extraction, ambiguous entity
@@ -142,11 +169,16 @@ send decision, and Telegram transport are deterministic. No central agent orches
 `ADR-011` replaced the horizontal sequence below with a vertical-first order, after a blind-spot sweep
 showed that the horizontal order answers the product's three CRITICAL open questions last.
 
-### Slice 1 — thinnest end-to-end path
-OpenSea -> minimal Project/Campaign/Stage/Opportunity -> Evidence -> CTA safety gate ->
-deterministic decision -> Telegram renderer + outbox -> one real alert.
+### Slice 1 - thinnest end-to-end path
+Source changed by `ADR-012` from OpenSea to an upstream source. The exact source waits on the
+allowlist-platform spike; on-chain deploy monitoring is the fallback if that spike fails.
 
-Thin in coverage, never in safety: all nine invariants above apply from the first commit.
+    upstream source -> minimal Project/Campaign/Stage/Opportunity -> Evidence -> CTA safety gate ->
+    deterministic decision -> Telegram renderer + outbox -> one real alert
+
+The domain primitives and safety core already built are unaffected and are reused as-is.
+
+Thin in coverage, never in safety: all eleven invariants above apply from the first commit.
 
 Required alongside slice 1, because the slice cannot measure what it exists to measure without them:
 - `human_action_latency` = `user_seen_or_ack_at - notification_sent_at`;

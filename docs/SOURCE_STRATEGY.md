@@ -333,3 +333,30 @@ path such as an official website/docs crawl:
 Consequence, stated plainly: a mint that appears **only** on one of these surfaces produces no
 candidate in Phase 1. That is an accepted coverage gap, not a defect, and it must be visible in
 miss-reason reporting as `coverage` rather than being attributed to a parser or scoring failure.
+
+---
+
+## Discovery path - upstream-first (ADR-012, 2026-08-30)
+This document previously implied discovery begins at a marketplace calendar. It does not.
+
+Discovery begins **upstream**, in priority order: allowlist platforms with APIs, on-chain contract
+deployment, then author-scoped X. Marketplaces provide structured verification and stage/price
+detail, which is what they are good at.
+
+The reason is evidential, not stylistic: an allowlist opening on an allowlist platform is strictly
+earlier than the announcement that reaches an alpha Discord, and a contract deployment is earlier
+still. See `docs/research/SOURCE_ACCESS_RESEARCH_2026-08-30.md`.
+
+### Influencers: discovery trigger, not a quality source
+`ADR-004`'s cap stands - influencer mention gives at most +5 Alpha and +0 Quality. `ADR-012` resolves
+the apparent conflict by separating stages: an influencer post may **create a candidate**, and
+convergence across several independently-scored accounts may contribute Alpha. It may not raise
+Quality and can never satisfy verification.
+
+Accounts earn their place from measured `historical_lead_time_minutes` and `false_positive_rate`.
+Follower count never enters scoring; drainer operations inflate it deliberately.
+
+### Chat platforms
+Discord, Telegram, Reddit and paid alpha groups are ruled out or sharply limited by `ADR-012`, each
+for a recorded reason. The controlling fact is that **membership is not access**: Discord and
+Telegram grant read rights to community operators, not community members.
