@@ -2,9 +2,12 @@
 
 ## Current verdict
 
-**Deep Design v1.1 canonical sync complete / Minimum-Action governance adopted / Harness logical-role architecture synced / Harness schemas v1.1 synced / Eval fixtures synced / Local Action Space audit PASS / OpenSea operational spike CLOSED / Telegram operational spike PASS / X paper-cost contract resolved but credentialed access blocked by App-not-in-Project enrollment / P0 credentialed operational evidence 1건 미완료 / Production Coding BLOCKED**
+**Deep Design v1.1 canonical sync complete / Minimum-Action governance adopted / Harness logical-role architecture synced / Harness schemas v1.1 synced / Eval fixtures synced / Local Action Space audit PASS / OpenSea operational spike CLOSED / Telegram operational spike PASS / X operational spike CLOSED and mode frozen in ADR-010 / all Phase 1 blocking operational spikes complete / cross-system Red Team not yet run**
 
-Current gate: **`SPIKE_REQUIRED / PRODUCTION CODING BLOCKED`**.
+Current gate: **`FREEZE_PENDING`**.
+
+Production coding remains blocked until the full cross-system Red Team returns P0 = 0
+and freeze reconciliation completes.
 
 ---
 
@@ -111,69 +114,36 @@ exactly-once transport, and this spike does not claim to prove repeat-suppressio
 
 ---
 
-## X operational spike — paper/cost ambiguity closed, credentialed run still blocked
-See `docs/spikes/SPIKE-X-001-RESULT.md`.
+## X operational spike - CLOSED, mode frozen
+See `docs/spikes/SPIKE-X-001-RESULT.md` and `ADR-010`.
 
-Current official documentation observed 2026-08-29 establishes:
-- Post read: **$0.005/resource** at observed revision;
-- Pay-per-use Filtered Stream available;
-- 1,000 rules/project;
-- 1 stream connection;
-- ~6–7 second P99 stream delivery described by X;
-- 2,000,000 Post-read/month Pay-per-use cap;
-- Bearer Token for app-only public-data reads.
+Measured 2026-08-29, total actual spend **$0.055** of an approved `$0.10` ceiling:
+- Free-plan project 403s on both endpoints; **Pay Per Use is required**;
+- Recent Search: HTTP 200, 225.9 ms; `from:opensea` returned 1 Post in 7 days, useful 0 / noise 1;
+- Filtered Stream: 10 Posts in 16.9 s, delivery lag **4.3-5.1 s (mean about 4.8 s)**, better than
+  the documented ~6-7 s P99;
+- temporary rule create/delete lifecycle clean, `cleanup_status: 200`, nothing left behind;
+- broad keyword rule produced **useful 0 / noise 10** at about 35 Posts/min, about **$250/day**.
 
-Provisional mode:
+Frozen mode: **`STREAM_PRIMARY_WITH_SEARCH_RECOVERY`**, with author-scoped rules mandatory,
+broad keyword rules forbidden, Recent Search restricted to recovery, deterministic source budget,
+and degradation to `X_OPTIONAL` if production signal ROI stays poor.
 
-`FILTERED_STREAM_PRIMARY + RECENT_SEARCH_RECOVERY`
+Proven: access, latency, rule lifecycle, cost mechanics.
+**Not proven: signal yield.** Neither tested query shape produced an actionable mint signal,
+which is why the degradation path is part of the frozen decision.
 
-No-cost Actions preflight runs `33245992097` and `33252938234` (2026-08-29) observed:
-- `spikes/x_probe.py` compile: PASS;
-- `X_BEARER_TOKEN`: **ABSENT**;
-- paid API calls attempted: 0;
-- repository Actions-secret enumeration on 2026-08-29: zero secrets, zero environments.
+## Remaining Phase 1 P0 blockers - 0 operational
 
-Bounded credentialed test is ready:
-- Recent Search <=10 Posts -> current ceiling `$0.05`;
-- Filtered Stream <=10 Posts -> current ceiling `$0.05`;
-- combined Post-read ceiling: **`$0.10`** at current public rate;
-- existing stream rules => stream leg refuses to run;
-- paid call requires exact manual opt-in `I_UNDERSTAND_X_MAY_COST`.
+All three Phase 1 blocking operational spikes are closed: OpenSea, Telegram, X.
 
-Credentialed bounded run attempted 2026-08-29 (run `33255336140`, opt-in supplied,
-rate rechecked at `$0.005/resource` immediately before execution):
-- both legs returned **HTTP 403 `client-not-enrolled`**;
-- corrected cause: the App **is** attached to a Project, but that project is on the **Free**
-  plan, which carries no Post-read entitlement. Measured fact: a Free-plan App cannot call
-  Recent Search or Filtered Stream rules;
-- Posts returned: 0; actual Post-read cost: **$0.00**; ceiling breach: false;
-- no temporary stream rule was created, so no cleanup was pending;
-- this is an account-enrollment blocker, not a design, pricing, or token-validity blocker.
+No user-owned credential is outstanding. `TELEGRAM_BOT_TOKEN` and `X_BEARER_TOKEN` are configured
+and both have been exercised against live providers.
 
-Remaining evidence:
-- Bearer-token API access through a Project-attached App;
-- bounded useful/noise sample;
-- stream rule/connection lifecycle or precise access failure;
-- execution-time rate recheck;
-- final X mode freeze.
-
----
-
-## Remaining Phase 1 P0 blockers — exactly 1
-
-Telegram closed 2026-08-29. The only remaining Phase 1 operational blocker is X.
-
-### 1. X
-External user-owned prerequisite:
-- `X_BEARER_TOKEN`: **PRESENT** since 2026-08-29;
-- **App sits in a Free-plan project with no Post-read entitlement** — 403
-  `client-not-enrolled`. The account already has an unused `NFT Mint Radar` Pay Per Use
-  project with 0 apps attached;
-- enough API credit for the bounded test (not yet exercised; the 403 cost $0.00).
-
-No additional P0 design/code uncertainty is known before those credentials exist.
-
----
+Remaining work before coding is analysis, not credentials:
+1. full cross-system Red Team, P0 must be 0;
+2. freeze reconciliation across derived artifacts;
+3. then `PHASE_1_CODING_READY`.
 
 ## Non-blocking later evidence
 - Galxe live query before enabling adapter.
@@ -208,18 +178,21 @@ No additional P0 design/code uncertainty is known before those credentials exist
 - [x] OpenSea operational spike complete and reconciled.
 - [x] X public pricing/access contract revalidated and bounded probe ready.
 - [x] Telegram real delivery complete.
-- [ ] X credentialed bounded run complete and final mode frozen.
-- [ ] remaining results reconciled into canonical status/ADR if required.
+- [x] X credentialed bounded run complete and final mode frozen (ADR-010).
+- [x] remaining results reconciled into canonical status/ADR.
 - [ ] no unresolved P0 provider feasibility ambiguity.
 
 ---
 
 ## Next action
-No production collectors yet.
+All Phase 1 blocking operational evidence is collected. Production coding is still **not**
+authorized.
 
-1. ~~Telegram dry-run~~ — done 2026-08-29, PASS;
-2. X bounded <=$0.10 trial — retry after the App is attached to a developer Project;
-3. reconcile results and freeze the X source mode;
-4. run the full cross-system Red Team;
-5. move to `FREEZE_PENDING`;
-6. if no P0 remains, set `PHASE_1_CODING_READY` and begin production implementation in the frozen order.
+1. run the full cross-system Red Team from `CLAUDE.md` section 10 and classify P0/P1/P2;
+2. resolve any P0 by KEEP/PATCH/CUT; NEW DESIGN only for a real structural hole;
+3. complete freeze reconciliation in the start gate section G;
+4. if P0 = 0, set `PHASE_1_CODING_READY` and implement in the frozen order.
+
+The first Red Team question to carry in deliberately: X signal yield is unproven, so any
+design that silently assumes X will surface mints early is making a claim the evidence
+does not support.

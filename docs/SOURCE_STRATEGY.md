@@ -112,7 +112,15 @@ Rule: community chatter is a lead, not evidence.
 
 ## Platform priority
 
-### X — P0 discovery / P0 official-change source when access is viable
+### X — P0 discovery / P0 official-change source; mode frozen by ADR-010
+Access, latency and rule lifecycle measured 2026-08-29: Pay Per Use required (Free plan 403s),
+stream delivery lag 4.3–5.1 s, rule create/delete clean. Mode is
+`STREAM_PRIMARY_WITH_SEARCH_RECOVERY` with **author-scoped rules only**.
+
+The watch keywords below describe what the *classifier* looks for inside Posts already
+collected from watched accounts. They are **not** a stream rule specification: a measured
+broad keyword rule produced useful 0 / noise 10 at roughly $250/day. See ADR-010.
+
 Why:
 - project announcements and giveaway/WL tasks often appear here early
 - useful for legacy-project reactivation, migration, holder-benefit and quest signals

@@ -1,7 +1,7 @@
 # SPIKE-X-001 Result — X discovery access/cost
 
 ## Status
-**PAPER_VALIDATED_CURRENT / OPERATIONAL_BLOCKED_BY_CREDENTIAL**
+**SPIKE_VALIDATED — access, latency, rule lifecycle and cost measured 2026-08-29; mode frozen in ADR-010**
 
 No production code was written.
 
@@ -189,7 +189,35 @@ lifecycle works and cleanup succeeded even on a failed connection** — the prob
 - `post_read_cost_ceiling_exceeded`: false;
 - remaining budget inside the approved `$0.10` ceiling: **$0.095**.
 
-## Gate impact
-The old **pricing-definition ambiguity is closed**.
+### Filtered Stream leg retry — PASS, run `33256021263`
+Rerun stream-only after provisioning settled:
+- **10 Posts delivered in 16.9 s**; `post_cap_exceeded`: false;
+- per-Post delivery lag: 4.339, 4.539, 4.6, 4.706, 4.822, 4.839, 4.862, 5.032, 5.067, 5.128 s
+  → **4.3–5.1 s observed, mean ≈ 4.8 s**, better than the ~6–7 s P99 the docs describe;
+- temporary rule created and deleted, `cleanup_status: 200`, no rule left behind;
+- cost **$0.05**; `post_read_cost_ceiling_exceeded`: false.
 
-Remaining Phase 1 X blocker is now only **credentialed operational evidence + final mode freeze**.
+**Signal quality: useful 0 / noise 10.** Nine of ten were replies; content was generic chatter
+("heart broker", "Nice update dear", "Congrats to all"). The closest to relevant was a reply
+discussing a Dutch-auction mechanism, which is commentary, not an actionable mint signal.
+
+### The measurement that decided the mode
+Filtered Stream bills per **delivered** Post. This broad keyword rule delivered ~35 Posts/min
+≈ 50,000 Posts/day ≈ **$250/day** at `$0.005`, for zero observed signal. Broad keyword rules are
+not a tuning preference; they are a cost-explosion mechanism with measured zero yield.
+Production rules must be author-scoped. See `ADR-010`.
+
+### Total spend for SPIKE-X-001
+`$0.005` search + `$0.05` stream = **$0.055** against the approved `$0.10` ceiling. No breach.
+
+## Final mode — FROZEN
+`STREAM_PRIMARY_WITH_SEARCH_RECOVERY`, with author-scoped rules mandatory, broad keyword rules
+forbidden, Recent Search restricted to recovery, a deterministic source budget, and degradation
+to `X_OPTIONAL` if production signal ROI stays poor. Recorded in `ADR-010`.
+
+Honest limit of this spike: access, latency, rule lifecycle and cost mechanics are proven.
+**Signal yield is not proven** — neither tested query shape produced a single actionable mint
+signal, which is why the degradation path is part of the frozen decision rather than a footnote.
+
+## Gate impact
+`SPIKE-X-001` is **CLOSED**. No Phase 1 blocking operational spike remains.

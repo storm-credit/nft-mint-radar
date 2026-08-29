@@ -41,23 +41,39 @@ Current official pay-per-use contract observed 2026-08-29:
 - Pay-per-use Filtered Stream: available;
 - Filtered Stream: up to 1,000 rules/project, 1 connection, core operators;
 - official docs describe about 6–7 second P99 stream delivery;
-- pay-per-use Post reads capped at 2,000,000/month before Enterprise;
+- pay-per-use Post reads capped at 3,000,000/month before Enterprise (rechecked 2026-08-29);
 - Bearer Token is sufficient for app-only public-data reads;
 - prices remain revalidated against Developer Console before production budget decisions.
 
-Operational mode candidate after paper validation:
+Operational mode **FROZEN** by `ADR-010` on measured evidence:
 
-`FILTERED_STREAM_PRIMARY + RECENT_SEARCH_RECOVERY`
+`STREAM_PRIMARY_WITH_SEARCH_RECOVERY`
 
-Final mode still waits for the bounded credentialed `SPIKE-X-001` because real NFT useful/noise volume has not been observed.
+Measured 2026-08-29 (`SPIKE-X-001`, total spend `$0.055`):
+- Free-plan project returns 403 on both endpoints; Pay Per Use is required;
+- Recent Search: HTTP 200 at 225.9 ms;
+- Filtered Stream: 10 Posts in 16.9 s, delivery lag 4.3–5.1 s (mean ≈ 4.8 s), better than
+  the documented ~6–7 s P99;
+- temporary rule create/delete lifecycle succeeded with `cleanup_status: 200`.
+
+Mandatory rule discipline, from `ADR-010`:
+- production stream rules are **author-scoped** `from:` clauses over verified official accounts,
+  with `-is:retweet -is:reply`;
+- **broad keyword-only rules are forbidden**, including temporarily. Measured: a broad rule
+  delivered ~35 Posts/min ≈ $250/day with useful 0 / noise 10;
+- Recent Search is recovery/backfill advanced by `since_id`, never a polling discovery loop.
+
+Signal ROI is **not** proven. Neither tested query shape produced an actionable mint signal.
+If the author-scoped watchlist's measured useful/noise stays poor, the adapter degrades to
+`X_OPTIONAL` under ADR-002 with no architecture change.
 
 Budget rules:
 - paid Post reads are counted from provider usage;
 - hard daily/monthly source budget is deterministic configuration;
 - budget exhaustion => `DEGRADED`, never surprise overspend;
-- first operational spike is bounded to <=10 search Posts plus <=10 stream Posts, currently <=$0.10 in Post-read cost at the observed public rate.
+- first operational spike was bounded to <=10 search Posts plus <=10 stream Posts and actually spent `$0.055` of a `$0.10` ceiling on 2026-08-29.
 
-Use narrow verified-project-account/keyword rules in production. A post from a verified official identity is not by itself proof that a newly introduced wallet-impacting CTA is safe.
+Use author-scoped verified-project-account rules in production; keyword-only rules are forbidden. A post from a verified official identity is not by itself proof that a newly introduced wallet-impacting CTA is safe.
 
 Recent Search is the recovery/catch-up path for reconnect/backfill; it is not justification for broad repeated polling when Filtered Stream has better measured source ROI.
 

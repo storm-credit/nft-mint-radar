@@ -110,7 +110,14 @@ Completed:
 - [x] one send produced one provider Message; dedup remains a local outbox
       responsibility and is verified by notifier fixtures, not by this spike.
 
-### X — PAPER/COST CONTRACT CLOSED; BLOCKED ONLY BY CREDENTIALED RUN
+### X — CLOSED
+Measured 2026-08-29 for `$0.055` of an approved `$0.10` ceiling. Free plan 403s on both
+endpoints; Pay Per Use required. Recent Search 200 at 225.9 ms. Filtered Stream delivered
+10 Posts in 16.9 s at 4.3-5.1 s lag with a clean rule create/delete cycle. A broad keyword
+rule measured useful 0 / noise 10 at about $250/day, which is why `ADR-010` freezes the mode
+as `STREAM_PRIMARY_WITH_SEARCH_RECOVERY` with author-scoped rules mandatory.
+
+Prior paper contract, retained:
 Current official public contract observed 2026-08-29:
 - [x] Post read rate observed: `$0.005/resource`;
 - [x] Pay-per-use Filtered Stream documented available;
@@ -125,14 +132,15 @@ Current official public contract observed 2026-08-29:
 
 Still required:
 - [x] `X_BEARER_TOKEN` configured through secret;
-- [ ] App attached to a developer Project — current token returns 403 `client-not-enrolled`;
-- [ ] enough API credit for the bounded trial (not yet exercised; the 403 cost $0.00);
-- [ ] explicit paid-run confirmation supplied;
-- [ ] bounded Recent Search sample observed;
-- [ ] bounded Filtered Stream rule/connection lifecycle observed, or precise account restriction recorded;
-- [ ] useful/noise sample classified;
-- [ ] Developer Console execution-time rate rechecked;
-- [ ] final mode frozen: `STREAM_PRIMARY_WITH_SEARCH_RECOVERY`, `SEARCH_PRIMARY`, or `X_OPTIONAL`.
+- [x] App attached to a Pay Per Use project; the Free-plan 403 is recorded as a measured fact;
+- [x] API credit sufficient — actual spend `$0.055`;
+- [x] explicit paid-run confirmation supplied;
+- [x] bounded Recent Search sample observed;
+- [x] bounded Filtered Stream rule/connection lifecycle observed, including clean cleanup;
+- [x] useful/noise sample classified — useful 0 / noise 10 on a broad rule, useful 0 / noise 1
+      on the `from:opensea` search. Signal yield is explicitly **not** proven;
+- [x] public Post-read rate rechecked at `$0.005/resource` immediately before each execution;
+- [x] final mode frozen as `STREAM_PRIMARY_WITH_SEARCH_RECOVERY` in `ADR-010`.
 
 ---
 
@@ -152,8 +160,8 @@ After Telegram/X pass or a named item is explicitly waived:
 - [x] OpenSea spike result saved and reconciled;
 - [x] X paper/access contract reconciled;
 - [x] save Telegram real-delivery result;
-- [ ] save X credentialed result;
-- [ ] update final X source mode/budget assumptions;
+- [x] save X credentialed result;
+- [x] update final X source mode/budget assumptions (ADR-010);
 - [ ] verify no derived schema/prompt/fixture/spike mapping is stale;
 - [ ] freeze Phase 1 source/runtime configuration;
 - [ ] confirm no unresolved P0 provider ambiguity.
@@ -192,10 +200,11 @@ If later evidence invalidates a frozen assumption:
 
 ## Current verdict
 
-**`SPIKE_REQUIRED / PRODUCTION CODING BLOCKED`**
+**`FREEZE_PENDING`**
 
-Only Phase 1 blocking evidence remaining:
-1. X bounded credentialed run — the current Bearer Token returns HTTP 403
-   `client-not-enrolled` because its App is not attached to a developer Project.
+All Phase 1 blocking operational spikes are closed: OpenSea, Telegram, X.
+No user-owned credential is outstanding.
 
-Telegram closed 2026-08-29.
+Production coding is still blocked on analysis, not evidence collection:
+1. full cross-system Red Team with P0 = 0;
+2. remaining section G reconciliation.
