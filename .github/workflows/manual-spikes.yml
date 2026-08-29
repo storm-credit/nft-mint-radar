@@ -16,10 +16,24 @@ on:
         required: false
         default: "ethereum,base,robinhood"
         type: string
+      x_mode:
+        description: "X bounded mode. both has a $0.10 Post-read ceiling at current public pricing"
+        required: false
+        default: "both"
+        type: choice
+        options:
+          - search
+          - stream
+          - both
       x_query:
-        description: "X recent-search query (used only for x probe)"
+        description: "X recent-search query (max 10 returned Posts)"
         required: false
         default: "from:opensea (mint OR drop OR allowlist) -is:retweet"
+        type: string
+      x_stream_query:
+        description: "Temporary Filtered Stream smoke rule (max 10 delivered Posts)"
+        required: false
+        default: "NFT lang:en -is:retweet"
         type: string
       paid_x_confirmation:
         description: "For X only, type exactly: I_UNDERSTAND_X_MAY_COST"
@@ -39,7 +53,6 @@ jobs:
       - uses: actions/checkout@v4
       - name: Run OpenSea disposable probe
         env:
-          # Optional. If absent, the spike requests an instant free-tier key in memory.
           OPENSEA_API_KEY: ${{ secrets.OPENSEA_API_KEY }}
           OPENSEA_CHAINS: ${{ inputs.opensea_chains }}
         run: python spikes/opensea_probe.py --chains "$OPENSEA_CHAINS" --limit 30 --detail-limit 10
@@ -53,7 +66,6 @@ jobs:
       - name: Run Telegram disposable delivery probe
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          # Optional. If absent, the spike resolves the latest private bot chat after /start.
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           SPIKE_RUN_ID: gh-${{ github.run_id }}-${{ github.run_attempt }}
         run: python spikes/telegram_probe.py --send
@@ -64,11 +76,19 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
-      - name: Run guarded X paid-access probe
+      - name: Run guarded bounded X paid-access probe
         env:
           X_BEARER_TOKEN: ${{ secrets.X_BEARER_TOKEN }}
+          X_MODE: ${{ inputs.x_mode }}
           X_QUERY: ${{ inputs.x_query }}
-        run: python spikes/x_probe.py --query "$X_QUERY" --max-results 10 --execute-paid
+          X_STREAM_QUERY: ${{ inputs.x_stream_query }}
+        run: >-
+          python spikes/x_probe.py
+          --mode "$X_MODE"
+          --query "$X_QUERY"
+          --stream-query "$X_STREAM_QUERY"
+          --stream-seconds 45
+          --execute-paid
 
   x-not-confirmed:
     if: ${{ inputs.probe == 'x' && inputs.paid_x_confirmation != 'I_UNDERSTAND_X_MAY_COST' }}
@@ -76,5 +96,6 @@ jobs:
     steps:
       - name: Refuse unconfirmed paid X probe
         run: |
-          echo "X probe not run. Enter the exact paid-cost confirmation string in workflow_dispatch."
+          echo "X probe not run. Current design ceiling is $0.10 in both mode, but explicit opt-in is still required."
+          echo "Enter exactly I_UNDERSTAND_X_MAY_COST in workflow_dispatch."
           exit 2
