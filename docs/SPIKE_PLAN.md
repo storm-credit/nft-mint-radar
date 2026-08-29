@@ -120,11 +120,11 @@ The disposable probe hard-caps the initial test at the observed public rate:
 - signal quality is too poor for the cost;
 - provider terms/rates materially invalidate the cost model.
 
-### Current blocker
-No-cost GitHub Actions preflight confirmed:
-- `spikes/x_probe.py` compiles;
-- `X_BEARER_TOKEN` is currently absent from Actions secret context;
-- paid API calls attempted: 0.
+### Outcome
+Closed 2026-08-29 on a Pay Per Use project. Recent Search HTTP 200 at 225.9 ms; Filtered Stream
+delivered 10 Posts in 16.9 s at 4.3-5.1 s lag with a clean rule create/delete cycle; total actual
+spend `$0.055` of a `$0.10` ceiling. The Free plan was measured to return 403 on both endpoints and
+cannot serve this product. Mode frozen in `ADR-010`.
 
 ### Artifact
 `docs/spikes/SPIKE-X-001-RESULT.md`

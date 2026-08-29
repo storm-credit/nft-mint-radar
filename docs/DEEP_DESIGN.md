@@ -868,10 +868,17 @@ Manual controls:
 
 ---
 
-# 15. Remaining technical decisions are spike-driven
-Architecturally isolated and not assumed:
-- X stream vs search/polling and cost;
-- OpenSea live coverage across Ethereum/Base/Robinhood;
+# 15. Provider decisions are spike-driven
+Each item below is architecturally isolated, so resolving one does not reshape the domain model.
+Current status of each lives in `docs/PROJECT_STATUS.md`; this section does not restate it.
+
+Resolved by spike:
+- X stream vs search/polling and cost — resolved, frozen in `ADR-010`;
+- OpenSea live coverage across Ethereum/Base/Robinhood — resolved, `SPIKE-MARKET-001`;
+- Telegram delivery — resolved, `SPIKE-TG-001`;
+- runtime topology — resolved, `ADR-006`.
+
+Still open, none blocking Phase 1:
 - PREMINT partner API vs permitted fallback;
 - Guild access mechanism;
 - Dune fresh execution cadence/cost;

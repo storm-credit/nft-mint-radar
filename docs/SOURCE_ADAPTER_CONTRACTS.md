@@ -87,6 +87,23 @@ persists the corresponding raw events. A cursor must never advance ahead of pers
 ordering is uncertain after a crash, replay an overlap window and rely on RawEvent idempotency; a
 duplicate raw event is cheap, a skipped one is unrecoverable.
 
+## Source lookup result — shared vocabulary
+Every adapter distinguishes three outcomes for a specific lookup, and they are not interchangeable:
+
+```yaml
+source_lookup_result: FOUND|NO_DATA|ERROR
+```
+
+- `FOUND` — the source returned a record for the subject.
+- `NO_DATA` — the source answered successfully and has no record for the subject. This is an absence
+  of coverage, **never** negative verification evidence. A project missing from a marketplace calendar
+  is `NO_DATA`; it is not evidence that the mint does not exist. `ADR-007` fixes this for OpenSea, and
+  it generalizes to every adapter.
+- `ERROR` — the lookup failed. Distinct from `NO_DATA`, because a failed call proves nothing at all.
+
+Collapsing `NO_DATA` and `ERROR`, or treating either as disconfirmation, is forbidden. Fixture `F40`
+exercises this.
+
 ## OfficialWebsiteAdapter
 Role: T1 identity/link/domain/schedule/contract/correction source.
 

@@ -6,7 +6,7 @@
 
 > **What is worth looking at early, what do I need to do to qualify, and when should I act?**
 
-The project is currently in **pre-production validation**. The architecture, trust model, harness and evaluation contracts are designed, but production collectors are intentionally blocked until the remaining provider spikes pass.
+The architecture, trust model, harness and evaluation contracts are designed. Whether production coding is authorized, and what currently blocks it, is stated in [`docs/PROJECT_STATUS.md`](docs/PROJECT_STATUS.md) — this README does not restate it.
 
 ## What it is meant to detect
 

@@ -2,12 +2,18 @@
 
 ## Current verdict
 
-**Deep Design v1.1 canonical sync complete / Minimum-Action governance adopted / Harness logical-role architecture synced / Harness schemas v1.1 synced / Eval fixtures synced / Local Action Space audit PASS / OpenSea operational spike CLOSED / Telegram operational spike PASS / X operational spike CLOSED and mode frozen in ADR-010 / all Phase 1 blocking operational spikes complete / cross-system Red Team complete with P0 = 0**
+**All Phase 1 blocking operational spikes closed (OpenSea, Telegram, X) / X mode frozen in ADR-010 /
+cross-system Red Team complete with P0 = 0 / freeze reconciliation complete / Phase 1 configuration
+frozen / Production coding AUTHORIZED for Phase 1 in the frozen order**
 
-Current gate: **`FREEZE_PENDING`**.
+Current gate: **`PHASE_1_CODING_READY`**.
 
-Cross-system Red Team ran 2026-08-29 and closed every P0. Production coding remains blocked only
-until freeze reconciliation completes.
+Cross-system Red Team ran 2026-08-29 and closed every P0. Freeze reconciliation completed the same
+day (`docs/FREEZE_RECONCILIATION_2026-08-29.md`) and the Phase 1 configuration is frozen
+(`docs/PHASE_1_FROZEN_CONFIG.md`).
+
+This file is the only place current gate state is stated. Other documents point here rather than
+restating it.
 
 ---
 
@@ -150,17 +156,15 @@ Proven: access, latency, rule lifecycle, cost mechanics.
 **Not proven: signal yield.** Neither tested query shape produced an actionable mint signal,
 which is why the degradation path is part of the frozen decision.
 
-## Remaining Phase 1 P0 blockers - 0 operational
+## Remaining Phase 1 P0 blockers - 0
 
 All three Phase 1 blocking operational spikes are closed: OpenSea, Telegram, X.
 
 No user-owned credential is outstanding. `TELEGRAM_BOT_TOKEN` and `X_BEARER_TOKEN` are configured
 and both have been exercised against live providers.
 
-Remaining work before coding:
-1. ~~full cross-system Red Team, P0 must be 0~~ — done 2026-08-29, P0 = 0;
-2. freeze reconciliation across derived artifacts;
-3. then `PHASE_1_CODING_READY`.
+Every pre-coding gate is closed: cross-system Red Team (P0 = 0, 2026-08-29), freeze reconciliation
+across derived artifacts, and the Phase 1 configuration freeze. Nothing blocks implementation.
 
 ## Non-blocking later evidence
 - Galxe live query before enabling adapter.
@@ -197,19 +201,23 @@ Remaining work before coding:
 - [x] Telegram real delivery complete.
 - [x] X credentialed bounded run complete and final mode frozen (ADR-010).
 - [x] remaining results reconciled into canonical status/ADR.
-- [ ] no unresolved P0 provider feasibility ambiguity.
+- [x] no unresolved P0 provider feasibility ambiguity.
 
 ---
 
 ## Next action
-Operational evidence is complete and the cross-system Red Team is closed at P0 = 0.
-Production coding is still **not** authorized.
+Production implementation of Phase 1, starting at step 1 of the frozen order in
+`docs/PHASE_1_FROZEN_CONFIG.md`: canonical domain primitives (`Project`, `Source`, `Evidence`,
+`ChainIdentity`, `AssetAmount`, `MintCampaign`, `MintStage`, `Opportunity`, `VerifiedLink`,
+`ActionLinkAssessment`).
 
-Remaining, in order:
-1. freeze reconciliation, start gate section G — verify no derived schema/prompt/fixture/spike
-   mapping is stale after the Red Team patches, freeze the Phase 1 source/runtime configuration,
-   confirm no unresolved P0 provider ambiguity;
-2. then set `PHASE_1_CODING_READY` and implement in the frozen order.
+Build the smallest working slice at each step and keep spike code out of production code.
+
+Rules that survive the gate and must not be weakened during implementation:
+- the nine safety invariants in `docs/PHASE_1_FROZEN_CONFIG.md`;
+- deterministic-first: scoring, state transitions, dedup, budget, CTA verdict, send decision and
+  Telegram transport are code, not prompts;
+- fixtures `F1`-`F40` are the acceptance contract, not documentation.
 
 Carry into implementation: X signal yield is unproven. `METRICS_SLO` already measures source ROI by
 median unique lead time, so this resolves as data rather than as an assumption — but no design may

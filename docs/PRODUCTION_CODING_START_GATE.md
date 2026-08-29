@@ -215,7 +215,7 @@ If later evidence invalidates a frozen assumption:
 
 ## Current verdict
 
-**`FREEZE_PENDING`**
+**`PHASE_1_CODING_READY`** — set 2026-08-29
 
 All Phase 1 blocking operational spikes are closed: OpenSea, Telegram, X.
 No user-owned credential is outstanding.
@@ -225,3 +225,8 @@ Freeze reconciliation completed the same day (`docs/FREEZE_RECONCILIATION_2026-0
 Phase 1 configuration is frozen in `docs/PHASE_1_FROZEN_CONFIG.md`.
 
 Sections E, G and the cross-system Red Team condition are all satisfied. Unresolved P0 = 0.
+
+Production coding is authorized for Phase 1, in the frozen implementation order recorded in
+`docs/PHASE_1_FROZEN_CONFIG.md`. Section I's regression rule stays in force: if later evidence
+invalidates a frozen assumption, mark the affected artifacts STALE, stop the impacted path, and
+re-enter only the affected gate criteria.

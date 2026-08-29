@@ -1,5 +1,9 @@
 # Blind-Spot Sweep — 2026-08-22
 
+> **Historical record of the 2026-08-22 sweep. Not current state.**
+> The findings below were closed by ADR-007/ADR-008 and later work.
+> `docs/PROJECT_STATUS.md` is the authority for current gate state.
+
 ## Scope
 Targeted re-audit after the Production Coding Start Gate was introduced. This audit does not reopen already-frozen design areas unless new evidence exposes a P0 defect.
 
