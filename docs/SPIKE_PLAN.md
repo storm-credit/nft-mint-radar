@@ -162,7 +162,7 @@ Prior spike/ADR selected hybrid topology with Railway worker + PostgreSQL and Gi
 ## SPIKE-WL-001 — allowlist platform access — OPEN, Phase 1 blocking for slice 1 source
 ### Question
 Can a single-user tool legitimately read *other projects'* currently-open allowlists from PREMINT or a
-peer platform, and does that data cover Robinhood Chain, where the current mint cycle is?
+peer platform, and does that data cover Robinhood Chain, a significant venue for current mints?
 
 ### Hypothesis
 An allowlist opening is strictly earlier than the announcement that reaches any alpha Discord, so if

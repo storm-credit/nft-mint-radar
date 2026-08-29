@@ -30,8 +30,13 @@ the proposed channels.
 4. **The genuinely earliest legitimate signals are upstream of chat**: allowlist platforms with APIs
    (PREMINT and peers), and on-chain contract deployment. An allowlist opening on PREMINT precedes
    the announcement that reaches any alpha Discord.
-5. **Robinhood Chain is where the current cycle is**, at more than double Ethereum's NFT volume, with
-   sub-hour seven-figure sellouts — and it is drainer-dense.
+5. **Robinhood Chain is a significant new venue** with sub-hour seven-figure sellouts, and it is
+   drainer-dense. *(Corrected 2026-08-30: this point originally claimed Robinhood Chain had passed
+   double Ethereum's NFT volume. It had not. CryptoSlam for the week to 2026-08-29 puts Ethereum at
+   $35.56M organic sales against Robinhood's reported ~$1.05M/24h — Ethereum remains roughly 5x
+   larger. The original claim came from one promotional-sounding source and was not cross-checked.
+   The decision below does not depend on it: upstream-first discovery and the chat-platform
+   exclusions rest on access facts, not on volume rankings.)*
 6. **Mint count hit a record while revenue fell.** The scarce resource is filtering, not discovery.
 
 ## Decision
@@ -76,10 +81,15 @@ accounts, and register lookalike domains within hours of a real launch.
 embedded cards.** Without this, an author-scoped rule harvests the phishing swarm along with the
 signal, and the CTA gate becomes the only defense rather than the second one.
 
-### 5. Chain priority reflects where the cycle is
+### 5. Chain priority
 Scope stays Ethereum + Base + Robinhood Chain per `ADR-007` — no chain is added or removed. Within it,
-**Robinhood Chain is the primary hunting ground** and Base is deprioritized until evidence changes.
-This also explains the zero-result Base probes as a market fact rather than an adapter defect.
+**Ethereum and Robinhood Chain are both primary; Base is deprioritized** until evidence changes. Base's
+zero-result probes are a market fact rather than an adapter defect.
+
+Corrected 2026-08-30: an earlier revision made Robinhood Chain *the* primary venue on the strength of
+a volume claim that did not survive cross-checking. Ethereum remains roughly 5x larger. Robinhood
+Chain stays a first-class target because sub-hour seven-figure mints demonstrably happen there, not
+because it leads.
 
 ### 6. Influencer seed list
 Seeded from behaviour-sourced candidates, not follower counts: `@weingfo`, `@Rhynotic`, `@0xRohitz`,

@@ -223,9 +223,13 @@ whitelist eligibility. Research confirmed the instinct and refuted the proposed 
 - **The earliest legitimate signals are upstream of chat**: allowlist platforms with APIs, then
   on-chain deployment, then author-scoped X. Both were already in the source list — the priority
   order was wrong, not the list.
-- **Robinhood Chain is where the current cycle is** (>2x Ethereum NFT volume, sub-hour seven-figure
-  sellouts) and it is drainer-dense. Base's creator strategy was publicly abandoned in July 2026,
-  which explains our zero-result Base probes as a market fact, not an adapter defect.
+- **Robinhood Chain is a significant new venue** with sub-hour seven-figure sellouts, and it is
+  drainer-dense. Base's creator strategy was publicly abandoned in July 2026, which explains our
+  zero-result Base probes as a market fact, not an adapter defect.
+  *(Corrected 2026-08-30: an earlier entry here claimed Robinhood Chain had >2x Ethereum's NFT volume.
+  It does not. CryptoSlam for the week to 2026-08-29 has Ethereum at $35.56M organic sales against
+  Robinhood's reported ~$1.05M/24h — Ethereum is roughly 5x larger. The claim came from a single
+  promotional-sounding source that was not cross-checked before being written into frozen documents.)*
 - **Mint count hit a record while revenue fell**: the scarce resource is filtering, not discovery.
 
 Two new safety invariants: links come from the author's own post body only, never the reply graph

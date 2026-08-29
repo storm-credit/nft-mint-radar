@@ -16,11 +16,22 @@ targeted revalidation, KEEP/PATCH/CUT first.
 ## Chains
 Ethereum, Base, Robinhood Chain. Owner: `ADR-007`. No chain added or removed by `ADR-012`.
 
-Priority within that set, per `ADR-012`: **Robinhood Chain is the primary hunting ground** - mainnet
-launched 2026-07-01 and passed double Ethereum's 24h NFT volume within weeks, with sub-hour
-seven-figure sellouts. **Base is deprioritized**: its creator/social strategy was publicly abandoned
-in July 2026, which independently explains why every OpenSea probe returned zero upcoming Base drops.
-Robinhood Chain is also drainer-dense, so the CTA safety gate is load-bearing there, not decorative.
+Priority within that set, per `ADR-012`: **Robinhood Chain is a primary hunting ground alongside
+Ethereum, not ahead of it.** Mainnet launched 2026-07-01 and hosts sub-hour seven-figure mints, and it
+is drainer-dense, so the CTA safety gate is load-bearing there rather than decorative.
+**Base is deprioritized**: its creator/social strategy was publicly abandoned in July 2026, which
+independently explains why every OpenSea probe returned zero upcoming Base drops.
+
+**CORRECTED 2026-08-30.** An earlier revision of this file stated that Robinhood Chain "passed
+double Ethereum's 24h NFT volume". That was wrong. It rested on a single promotional-sounding source
+and was not cross-checked before being written into a frozen document. CryptoSlam data for the seven
+days to 2026-08-29 shows **Ethereum at $35.56M organic sales**, roughly $5M/day, still the largest
+NFT chain, against Robinhood Chain's reported ~$1.05M/24h — Ethereum is about **5x larger**, not
+smaller. Global NFT sales that week were $63.33M, down from $114.5M.
+
+What survives the correction: Robinhood Chain doing roughly $7M/week at two months old is a genuinely
+notable and fast-growing venue, it is where several sub-hour seven-figure mints actually happened, and
+it is drainer-dense. What does not survive: any claim that it has overtaken Ethereum.
 
 No other chain is in Phase 1 scope, including chains that appear in a source's response.
 

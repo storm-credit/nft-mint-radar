@@ -23,10 +23,16 @@ Anything load-bearing must be re-verified against the live page before code depe
   ([DappRadar](https://dappradar.com/blog/nft-arts-shocking-collapse-from-2-9-billion-boom-to-23-8-million-bust-what-went-wrong),
   [crypto.news](https://crypto.news/nft-industry-impact-activity-slow-marketplace-collapse/)).
   Marketplace X2Y2 shut down citing "90% shrinkage".
-- **Robinhood Chain is where the current mint cycle is.** Mainnet launched 2026-07-01
+- **Robinhood Chain is a significant new mint venue.** Mainnet launched 2026-07-01
   ([Forbes](https://www.forbes.com/sites/ninabambysheva/2026/07/01/robinhood-launches-its-own-blockchain-new-stock-tokens-and-defi-products/))
-  and within weeks posted more than double Ethereum's 24-hour NFT volume
+  and within weeks was reported to have passed Ethereum's 24-hour NFT volume
   ([Crypto Briefing](https://cryptobriefing.com/robinhood-chain-surpasses-ethereum-nft-volume/)).
+  **This claim did not survive cross-checking and should not be relied on.** CryptoSlam for the seven
+  days to 2026-08-29 shows Ethereum at $35.56M organic sales, still the largest NFT chain, against
+  Robinhood's reported ~$1.05M/24h — Ethereum is roughly 5x larger
+  ([crypto.news](https://crypto.news/nft-sales-fall-44-7-to-63-3m-as-ethereum-leads/)). The original
+  figure reads as a promotional snapshot. Robinhood Chain is a notable fast-growing venue; it has not
+  overtaken Ethereum.
   Mints sell out in under an hour for seven figures — Spritehood took $1.28M in 53 minutes
   ([KuCoin](https://www.kucoin.com/news/flash/spritehood-nft-mint-generates-1-28m-on-robinhood-chain-in-53-minutes)).
 - **Base weakened.** In July 2026 Jesse Pollak publicly conceded the onchain-social/creator strategy
