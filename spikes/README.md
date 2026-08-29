@@ -68,10 +68,10 @@ Local run:
 
 ```bash
 export X_BEARER_TOKEN='...'
-python spikes/x_probe.py --query 'from:SomeOfficialAccount (allowlist OR mint OR holders)' --max-results 10 --execute-paid
+python spikes/x_probe.py --mode search --query 'from:SomeOfficialAccount (allowlist OR mint OR holders)' --execute-paid
 ```
 
-The test is intentionally bounded to at most 10 returned posts by the workflow default. Do not widen it until the first spend/utility result is recorded.
+The bound is in the runner itself: `MAX_SEARCH_POSTS = 10` and `MAX_STREAM_POSTS = 10` in `spikes/x_probe.py`, not in a workflow default. If the provider returns more Posts than the cap, or the estimated Post-read cost exceeds the declared ceiling, the probe reports the real count/cost and fails the run rather than reporting a bounded PASS. Do not widen the caps until the first spend/utility result is recorded.
 
 ## Expected outputs
 Each runner emits compact JSON containing only measurements/non-secret response data.

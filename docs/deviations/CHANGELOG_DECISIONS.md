@@ -47,3 +47,13 @@ Use this file only when implementation/spike work materially differs from the ac
 - Compatibility/migration impact: no domain-schema change; X adapter contract, spike plan, runner, and readiness docs were synchronized.
 - Follow-up: after a Bearer Token and API credit are configured, run the explicit paid `both` spike with the manual confirmation string and reconcile the result.
 - ADR required: NO unless the observed run forces a different source architecture or makes X optional.
+
+### 2026-08-29 — X bounded-spend claim strengthened from request bound to detected breach
+- Original plan: the disposable X probe "hard-caps" the bounded paid test at <=10 Recent Search Posts and <=10 Filtered Stream Posts, total <=$0.10 Post-read cost.
+- Actual change: the Recent Search cap existed only as the outbound `max_results` parameter, so a larger provider response would have been costed and reported as a bounded PASS. The runner now fails the leg on an over-cap response, fails the run when the combined estimate exceeds the declared ceiling, always estimates cost over the actual returned count instead of a truncated view, and records the Filtered Stream figure as a lower bound because in-flight delivered Posts may still be billed.
+- Why: the gate depends on never promoting a lower validation state through a false PASS. Truncating the sample to fit the cap would have hidden real spend, which is the failure mode the ceiling exists to prevent.
+- Evidence: cross-artifact consistency audit executed by Codex under a read-only scope; both cited contradictions verified by hand against `spikes/x_probe.py`, `spikes/README.md`, and `docs/SPIKE_PLAN.md`. Offline stubbed-provider check: 13-Post response -> `POST_CAP_EXCEEDED` at true `$0.065`; 10-Post response -> PASS at `$0.05`. `python -m py_compile spikes/x_probe.py` PASS. No network or paid call.
+- Impact: the <=$0.10 ceiling is now an enforced and observable property of the runner rather than a documentation claim. No architecture, schema, or ADR change.
+- Compatibility/migration impact: none; probe output gains `post_cap_exceeded`, `post_read_cost_ceiling_exceeded`, and `post_read_accounting_bound` fields.
+- Follow-up: the credentialed bounded run must record the execution-time Developer Console rate and confirm the breach flags stayed false before the X mode is frozen.
+- ADR required: NO — the bounded-spike contract is unchanged; only its enforcement was made real.

@@ -54,6 +54,23 @@ These are arithmetic examples, not a prediction of our production volume.
 ### Combined mode
 Current Post-read ceiling: **$0.10**.
 
+### Bound enforcement observed in the runner — 2026-08-29
+A cross-artifact consistency audit found that the documented Recent Search `<=10` cap
+existed only as the `max_results` request parameter; the runner did not detect an
+over-cap response. The runner was patched so that:
+- estimated cost is always computed over every Post the provider actually returned,
+  never over a locally truncated view, because truncating would understate real spend;
+- an over-cap response sets `post_cap_exceeded` and fails the leg (`POST_CAP_EXCEEDED`)
+  rather than reporting a bounded PASS;
+- a combined estimate above the declared ceiling sets `post_read_cost_ceiling_exceeded`
+  and fails the run;
+- the Filtered Stream figure is recorded as a close lower bound, because X may bill a
+  small number of Posts already delivered into the socket buffer when the bounded loop stops.
+
+Offline verification with a stubbed provider response of 13 Posts: leg failed with
+`POST_CAP_EXCEEDED` and reported the true `$0.065`, not a truncated `$0.05`.
+A 10-Post response still passes at `$0.05`. No network call was made.
+
 The workflow still requires the exact manual confirmation string `I_UNDERSTAND_X_MAY_COST` before any paid call.
 
 ## Current decision

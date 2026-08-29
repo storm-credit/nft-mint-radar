@@ -97,7 +97,18 @@ def recent_search(token: str, query: str):
     body = result.get("body") if isinstance(result.get("body"), dict) else {}
     posts = body.get("data") if isinstance(body.get("data"), list) else []
     out["returned_count"] = len(posts)
+    # Cost is estimated over every returned Post, never over a locally truncated
+    # view. Truncating here would understate real spend and manufacture a false
+    # PASS, so an over-cap response fails the leg instead.
     out["estimated_post_read_cost_usd"] = round(len(posts) * POST_READ_USD, 4)
+    out["post_cap_exceeded"] = len(posts) > MAX_SEARCH_POSTS
+    if out["post_cap_exceeded"]:
+        out["ok"] = False
+        out["status"] = "POST_CAP_EXCEEDED"
+        out["error"] = (
+            f"provider returned {len(posts)} Posts above the local cap of {MAX_SEARCH_POSTS}; "
+            "recorded as a bounded-experiment breach"
+        )
     out["posts"] = [
         {
             "id": p.get("id"),
@@ -246,7 +257,12 @@ def filtered_stream(token: str, query: str, duration_seconds: int):
         "duration_seconds_observed": elapsed,
         "max_posts": MAX_STREAM_POSTS,
         "returned_count": len(posts),
+        "post_cap_exceeded": len(posts) > MAX_STREAM_POSTS,
         "estimated_post_read_cost_usd": round(len(posts) * POST_READ_USD, 4),
+        "post_read_accounting_bound": (
+            "counts Posts this probe read; X may additionally bill a small number of Posts already "
+            "delivered into the socket buffer when the bounded loop stops"
+        ),
         "keepalive_count": keepalives,
         "delivery_lag_seconds": lags,
         "posts": posts,
@@ -302,6 +318,14 @@ def main():
         if isinstance(out.get(key), dict):
             actual_estimate += float(out[key].get("estimated_post_read_cost_usd") or 0)
     out["estimated_post_read_cost_usd"] = round(actual_estimate, 4)
+    ceiling = out["hard_post_read_cost_ceiling_usd"]
+    out["post_read_cost_ceiling_exceeded"] = actual_estimate > ceiling + 1e-9
+    if out["post_read_cost_ceiling_exceeded"]:
+        out["ok"] = False
+        out["ceiling_breach"] = (
+            f"estimated Post-read cost {round(actual_estimate, 4)} exceeded the declared "
+            f"ceiling {ceiling}; do not record this run as a bounded PASS"
+        )
 
     print(json.dumps(out, ensure_ascii=False, indent=2))
     return 0 if out["ok"] else 1

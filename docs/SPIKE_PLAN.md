@@ -99,6 +99,8 @@ The disposable probe hard-caps the initial test at the observed public rate:
 4. Stream refuses to run if any pre-existing stream rule exists, preventing unrelated rules from creating unbounded test reads.
 5. Temporary stream rule is removed after the experiment.
 6. Any paid call still requires exact manual opt-in `I_UNDERSTAND_X_MAY_COST`.
+7. Cost is estimated over every Post the provider actually returned, never over a locally truncated view. If the returned count exceeds a cap, or the estimated Post-read cost exceeds the declared ceiling, the probe fails the run instead of reporting a bounded PASS.
+8. Known accounting bound: the Filtered Stream figure counts Posts the probe read. X may additionally bill a small number of Posts already delivered into the socket buffer when the bounded loop stops, so the stream leg's recorded spend is a close lower bound rather than an exact charge.
 
 ### Success
 - Bearer-token access succeeds;
