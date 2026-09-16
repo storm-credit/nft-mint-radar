@@ -183,6 +183,69 @@ coverage.
 
 ---
 
+## 8. WHERE the operator actually gets it
+
+The more important half of this corpus is not how they judge, but where the information enters.
+
+### X is the dominant source
+Twelve `x.com` links across five days. Almost every NFT post carries the project's X account:
+`RareFriendsNFT`, `standard_rsv`, `YieldFields_RH`, `inkonchain`, `hypurr_co`, `cityprotocolHQ`.
+
+The Standard Reserve post exposes what they watch there, under "핫해진 계기":
+- Uniswap Foundation funding the audit, and the founder commenting;
+- **influencers posting allowlist screenshots, which the operator was counting** - roughly 450
+  allocations;
+- concluding the public Dutch auction would therefore clear high.
+
+That middle item is the convergence signal `ADR-012` describes, observed in the wild. Independent
+accounts confirming the same allowlist is an X-observable, author-scoped pattern.
+
+### Direct registration on the platforms themselves
+A referral code in one link proves they hold an account there. The behaviour around it matters more:
+they enter many marginal allowlists cheaply and check later.
+
+### Marketplace price movement as a derived signal
+A gating collection jumping on an allowlist announcement is itself evidence that an allowlist was
+announced somewhere. They also track floor rank against Moonbirds and Azuki.
+
+### A named wallet tracked by buying pattern, a Korean Telegram channel network they forward from, and
+AI used to read whitepapers.
+
+---
+
+### The conclusion that matters: this channel is their OUTPUT, not their INPUT
+
+| Their source | Can we? |
+|---|---|
+| X - project, founder, foundation, influencer WL posts | **Yes** - author-scoped, frozen in `ADR-010` |
+| Marketplace floor and price movement | **Yes** - OpenSea adapter in scope |
+| Individual wallet watching | **Yes** - on-chain, already P0 |
+| User's own holdings for eligibility | **Yes** - read the user's wallet |
+| AI reading whitepapers | **Yes** - the unstructured-extraction node |
+| Registering on allowlist platforms | **User must do this.** Detecting a WL opened is ours; entering is theirs |
+| Korean Telegram channel network | **No** - membership is not access, and this is social capital |
+
+**Five of seven are already ours or legitimately reachable.**
+
+This retroactively justifies `ADR-012`. Losing Telegram is not fatal, because the channel is where
+this operator publishes, not where they learn. We need to read what they read, and X is most of it.
+
+### Two things that do not reproduce
+**Network position** is social capital; no API creates it.
+
+**Volume of cheap entries.** Rare Friends was entered 09-11, forgotten, and found to be a $960 free
+mint on 09-15.
+
+The second is where a system should beat a human rather than imitate one. Entering stays manual, but
+tracking what was entered, when results land, and what needs checking is bookkeeping - and the
+operator demonstrably failed at it. That feature requires being early to nothing.
+
+### Seed-list consequence
+The X accounts this operator links are **projects**, not curators. Useful for verification, useless
+for discovery. The discovery-relevant handles are the influencers posting WL confirmations, and they
+are not named in this corpus. `ADR-012`'s seed list was assembled by research rather than from a real
+operator's field of view.
+
 ## Design implications, ranked
 
 1. **Latency optimisation is answering the wrong question.** Four-day lead times make the
